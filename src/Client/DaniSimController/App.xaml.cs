@@ -36,8 +36,9 @@ namespace DaniSimController
 
             services.AddTransient(typeof(MainWindowViewModel));
             services.AddTransient(typeof(SimVarBrowserViewModel));
-            services.AddTransient(typeof(PollingViewModel));
             services.AddTransient(typeof(SimVarMonitorViewModel));
+            services.AddTransient(typeof(PollingViewModel));
+            services.AddTransient(typeof(SerialViewModel));
         }
 
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using DaniSimController.Mvvm;
@@ -36,7 +37,14 @@ namespace DaniSimController.ViewModels
         {
             if (_simVars.TryGetValue(obj.RequestId, out var value))
             {
-                value.Value = obj.Value.ToString();
+                var newValue = obj.Value.ToString();
+                if (value.Value != newValue)
+                {
+                    value.Value = obj.Value.ToString();
+                    var line = $"|{obj.RequestId}:{value.Value.ToString()}";
+                    _eventAggregator.GetEvent<WriteToSerialEvent>().Publish(line);
+                    Debug.WriteLine(line);
+                }
             }
         }
 

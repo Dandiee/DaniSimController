@@ -1,8 +1,10 @@
 ﻿<Application x:Class="DaniSimController.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:DaniSimController.Converters">
     <Application.Resources>
         <FontFamily x:Key="FaRegular">Assets/Fonts/FontAwesomeRegular.otf#Font Awesome 5 Free Regular</FontFamily>
         <FontFamily x:Key="FaSolid">Assets/Fonts/FontAwesomeSolid.otf#Font Awesome 5 Free Solid</FontFamily>
+        <converters:NegateConverter x:Key="NegateConverter"/>
     </Application.Resources>
 </Application>

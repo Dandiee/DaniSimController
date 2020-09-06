@@ -11,7 +11,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="500"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition MinWidth="200" Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <views:SimVarBrowserView Grid.Column="0"/>
@@ -20,6 +20,7 @@
 
             <StackPanel Grid.Column="2" Margin="5">
                 <views:PollingView/>
+                <views:SerialView/>
             </StackPanel>
     </Grid>
 </Window>
