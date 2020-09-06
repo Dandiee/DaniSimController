@@ -1,9 +1,8 @@
 ﻿<Application x:Class="DaniSimController.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:DaniSimController"
-             StartupUri="MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
-         
+        <FontFamily x:Key="FaRegular">Assets/Fonts/FontAwesomeRegular.otf#Font Awesome 5 Free Regular</FontFamily>
+        <FontFamily x:Key="FaSolid">Assets/Fonts/FontAwesomeSolid.otf#Font Awesome 5 Free Solid</FontFamily>
     </Application.Resources>
 </Application>

@@ -4,92 +4,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:DaniSimController.Models"
+        xmlns:views="clr-namespace:DaniSimController.Views"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <StackPanel>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="500"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
+    <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400"/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="500"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="800"/>
-                </Grid.RowDefinitions>
+            <views:SimVarBrowserView Grid.Column="0"/>
+   
+            <views:SimVarMonitorView Grid.Column="1"/>
 
-                <StackPanel Orientation="Horizontal">
-                    <TextBox Text="{Binding AvailableSimVarFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100"/>
-                    <ComboBox ItemsSource="{Binding Source={x:Static models:SimVarType.All}}"
-                              Width="100"
-                              SelectedItem="{Binding SelectedAvailableSimVarType, Mode=TwoWay}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <Button Command="{Binding ClearSimVarTypeFilter}">[X]</Button>
-                </StackPanel>
-
-                <ListBox Grid.Row="1" ItemsSource="{Binding AvailableSimVarCollection}" MouseDoubleClick="SimVarOptionsListDoubleClicked">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock>
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="{}{0} ({1})">
-                                        <Binding Path="Name"/>
-                                        <Binding Path="Type.Name"/>
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-
-            <Grid Grid.Column="1">
-                <ListView ItemsSource="{Binding SelectedSimVars}" MouseDoubleClick="SelectedSimVarListDoubleClicked">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Index" Width="120" DisplayMemberBinding="{Binding Number}" />
-                            <GridViewColumn Header="Name" Width="120" DisplayMemberBinding="{Binding SimVar.Name}" />
-                            <GridViewColumn Header="Type" Width="50" DisplayMemberBinding="{Binding SimVar.Type.Name}" />
-                            <GridViewColumn Header="Value" Width="150" DisplayMemberBinding="{Binding Value}" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </Grid>
-
-            <Grid Grid.Row="1" Grid.ColumnSpan="2">
-                <StackPanel Orientation="Horizontal">
-                    <Slider Minimum="10" Maximum="1000" Value="{Binding PollIntervalInMs, Mode=TwoWay}" Width="100"/>
-                    <Button Command="{Binding PausePlayTimerCommand}">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <DataTrigger Value="True" Binding="{Binding IsPolling}">
-                                        <Setter Property="Content" Value="Start"/>
-                                    </DataTrigger>
-                                    <DataTrigger Value="False" Binding="{Binding IsPolling}">
-                                        <Setter Property="Content" Value="Pause"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
-            </Grid>
-
-        </Grid>
-
-        <!--<Button Click="ButtonBase_OnClick" Width="200" Height="50" Margin="0 10 0 0">Click me</Button>
-        <TextBlock x:Name="Péter" TextAlignment="Center" VerticalAlignment="Center" FontSize="72">Waiting for dáta</TextBlock>-->
-    </StackPanel>
+            <StackPanel Grid.Column="2" Margin="5">
+                <views:PollingView/>
+            </StackPanel>
+    </Grid>
 </Window>

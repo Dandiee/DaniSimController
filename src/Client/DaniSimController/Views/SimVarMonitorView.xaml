@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="DaniSimController.Views.SimVarMonitorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <ListView ItemsSource="{Binding SimVars}" MouseDoubleClick="SelectedSimVarListDoubleClicked">
+        <ListView.View>
+            <GridView>
+                <GridViewColumn Header="#" Width="30" DisplayMemberBinding="{Binding Request.RequestId}" />
+                <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Request.SimVar.Name}" />
+                <GridViewColumn Header="Type" Width="100" DisplayMemberBinding="{Binding Request.SimVar.Type.Name}" />
+                <GridViewColumn Header="Value" Width="150">
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Value}" FontWeight="Bold" />
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+            </GridView>
+        </ListView.View>
+    </ListView>
+</UserControl>

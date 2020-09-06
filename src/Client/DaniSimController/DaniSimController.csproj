@@ -7,6 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Fonts\FontAwesomeRegular.otf" />
+    <None Remove="Assets\Fonts\FontAwesomeSolid.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Microsoft.FlightSimulator.SimConnect">
       <HintPath>Microsoft.FlightSimulator.SimConnect.dll</HintPath>
     </Reference>
@@ -22,6 +31,11 @@
     <None Update="SimConnect.lib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Fonts\FontAwesomeRegular.otf" />
+    <Resource Include="Assets\Fonts\FontAwesomeSolid.otf" />
   </ItemGroup>
 
 </Project>
