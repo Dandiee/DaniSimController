@@ -1,88 +1,109 @@
-bool isProcessingIncomingData = false;
-char commandStartCharacter = '|';
-char endOfCommandCharacter = '\n';
-char inputBuffer[32];
-int cursor = 0; 
-float state[64];
+#include <Arduino.h>
+#include "Adafruit_MCP23017.h"
+#include "Rotary.h"
+#include "RotaryEncOverMCP.h"
 
-void setup()
-{
-  Serial.begin(9600);
-  pinMode(7, OUTPUT);
+/* Our I2C MCP23017 GPIO expanders */
+Adafruit_MCP23017 mcp;
+
+//Array of pointers of all MCPs if there is more than one
+Adafruit_MCP23017* allMCPs[] = { &mcp };
+constexpr int numMCPs = (int)(sizeof(allMCPs) / sizeof(*allMCPs));
+
+/* the INT pin of the MCP can only be connected to
+ * an interrupt capable pin on the Arduino, either
+ * D3 or D2.
+ * */
+byte arduinoIntPin = 7;
+
+/* variable to indicate that an interrupt has occured */
+volatile boolean awakenByInterrupt = false;
+
+/* function prototypes */
+void intCallBack();
+void cleanInterrupts();
+void handleInterrupt();
+void RotaryEncoderChanged(bool clockwise, int id);
+
+/* Array of all rotary encoders and their pins */
+RotaryEncOverMCP rotaryEncoders[] = {
+        // outputA,B on GPA7,GPA6, register with callback and ID=1
+        RotaryEncOverMCP(&mcp, 7, 6, &RotaryEncoderChanged, 1)
+};
+constexpr int numEncoders = (int)(sizeof(rotaryEncoders) / sizeof(*rotaryEncoders));
+
+void RotaryEncoderChanged(bool clockwise, int id) {
+    Serial.println("Encoder " + String(id) + ": "
+            + (clockwise ? String("clockwise") : String("counter-clock-wise")));
 }
 
-void loop()
-{
-  readSerial();
-  writeState();
-}
+void setup(){
 
-void writeState()
-{
-  writeGear();
-}
-
-void writeGear()
-{
-  float value = state[0];
-  if(value > 0 && value < 1)
-  {
-    blink(7);
-  }
-  else if (value == 0)
-  {
-    digitalWrite(7, LOW);  
-  }
-  else
-  {
-    digitalWrite(7, HIGH);  
-  }
-}
-
-void blink(int pin)
-{
-  digitalWrite(7, HIGH);
-  delay(50);
-  digitalWrite(7, LOW);
-  delay(50);
-}
-
-
-void readSerial()
-{
-  while (Serial.available() > 0)
-  {
-    Serial.println("van kari");
-    char currentChar = Serial.read();
+    Serial.begin(115200);
+    while(!Serial);
     
-    if (isProcessingIncomingData)
-    {
-      if (currentChar == endOfCommandCharacter)
-      {
-        interpretIncomingData();
-      }
-      else
-      {
-        inputBuffer[cursor] = currentChar;
-        cursor++;
-      }
+    Serial.println("MCP23007 Interrupt Test");
+
+    pinMode(arduinoIntPin,INPUT);
+
+Serial.println("mcp begin");
+    mcp.begin();      // use default address 0
+
+    Serial.println("read INT");
+    mcp.readINTCAPAB(); //read this so that the interrupt is cleared
+
+    //initialize all rotary encoders
+
+    //Setup interrupts, OR INTA, INTB together on both ports.
+    //thus we will receive an interrupt if something happened on
+    //port A or B with only a single INT connection.
+    Serial.println("setup interrupt");
+    mcp.setupInterrupts(true,false,LOW);
+
+  Serial.println("for");
+    //Initialize input encoders (pin mode, interrupt)
+    for(int i=0; i < numEncoders; i++) {
+        rotaryEncoders[i].init();
     }
-    else if(currentChar == commandStartCharacter)
-    {
-      isProcessingIncomingData = true;
-    }
-  }
+
+Serial.println("attach interrupt");
+    attachInterrupt(digitalPinToInterrupt(arduinoIntPin), intCallBack, FALLING);
 }
 
-void interpretIncomingData()
-{
-  inputBuffer[cursor + 1] = 0;
-  isProcessingIncomingData = false;
-  cursor = 0;
-  char* separator = strchr(inputBuffer, ':');
-  int key = atoi(inputBuffer);
-  float value = atof(++separator);
-  state[key] = value;
-  Serial.println(key);
-  Serial.println(value);
+// The int handler will just signal that the int has happened
+// we will do the work from the main loop.
+void intCallBack() {
+    awakenByInterrupt=true;
+}
+
+void checkInterrupt() {
+    if(awakenByInterrupt) {
+        // disable interrupts while handling them.
+        detachInterrupt(digitalPinToInterrupt(arduinoIntPin));
+        handleInterrupt();
+        attachInterrupt(digitalPinToInterrupt(arduinoIntPin), intCallBack, FALLING);
+    }
+}
+
+void handleInterrupt(){
+   for(int j = 0; j < numMCPs; j++) {
+        uint16_t gpioAB = allMCPs[j]->readINTCAPAB();
+        for (int i=0; i < numEncoders; i++) {
+            //only feed this in the encoder if this
+            //is coming from the correct MCP
+            if(rotaryEncoders[i].getMCP() == allMCPs[j])
+                rotaryEncoders[i].feedInput(gpioAB);
+        }
+    }
+
+    cleanInterrupts();
+}
+
+void cleanInterrupts(){
+    EIFR=0x01;
+    awakenByInterrupt=false;
+}
+
+void loop() {
+  checkInterrupt();
 }
