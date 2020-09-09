@@ -36,38 +36,36 @@ void RotaryEncoderChanged(bool clockwise, int id) {
     Serial.println("Encoder " + String(id) + ": "
             + (clockwise ? String("clockwise") : String("counter-clock-wise")));
 }
-
+RotaryEncOverMCP referenceRotary(&mcp, 7, 6, &RotaryEncoderChanged, 1);
 void setup(){
 
     Serial.begin(115200);
-    while(!Serial);
+    while(!Serial); Serial.println("asd");
+    pinMode(arduinoIntPin,INPUT);Serial.println("asd");
+    mcp.begin();      Serial.println("asd");
+    mcp.readINTCAPAB(); Serial.println("asd");
+    mcp.setupInterrupts(true,false,LOW); Serial.println("asd");
     
-    Serial.println("MCP23007 Interrupt Test");
-
-    pinMode(arduinoIntPin,INPUT);
-
-Serial.println("mcp begin");
-    mcp.begin();      // use default address 0
-
-    Serial.println("read INT");
-    mcp.readINTCAPAB(); //read this so that the interrupt is cleared
-
-    //initialize all rotary encoders
-
-    //Setup interrupts, OR INTA, INTB together on both ports.
-    //thus we will receive an interrupt if something happened on
-    //port A or B with only a single INT connection.
-    Serial.println("setup interrupt");
-    mcp.setupInterrupts(true,false,LOW);
-
-  Serial.println("for");
-    //Initialize input encoders (pin mode, interrupt)
     for(int i=0; i < numEncoders; i++) {
         rotaryEncoders[i].init();
     }
-
-Serial.println("attach interrupt");
+    Serial.println("asd");
     attachInterrupt(digitalPinToInterrupt(arduinoIntPin), intCallBack, FALLING);
+    Serial.println("asd");
+    /*pinMode(2,INPUT_PULLUP);
+    pinMode(3,INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(2), myPrettyCallback, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(3), myPrettyCallback, CHANGE);
+*/
+    Serial.println("ready");
+}
+
+void myPrettyCallback()
+{
+  char c = referenceRotary.process(digitalRead(2), digitalRead(3));
+  if(c){
+    Serial.println(c == DIR_CCW ? "CCW" : "CW");
+  }
 }
 
 // The int handler will just signal that the int has happened

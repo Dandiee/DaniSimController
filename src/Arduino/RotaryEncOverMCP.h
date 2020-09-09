@@ -42,6 +42,10 @@ class RotaryEncOverMCP {
         }
     }
 
+    unsigned char process(unsigned char pin1State, unsigned char pin2State) {
+      return rot.process(pin1State, pin2State);
+    }
+
     Adafruit_MCP23017* getMCP() {
         return mcp;
     }
