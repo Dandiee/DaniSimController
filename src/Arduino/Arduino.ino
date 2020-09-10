@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "Adafruit_MCP23017.h"
-#include "Rotary.h"
-#include "RotaryEncOverMCP.h"
+#include "Encoder.h"
 
 /* Our I2C MCP23017 GPIO expanders */
 Adafruit_MCP23017 mcp;
