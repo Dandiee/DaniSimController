@@ -31,13 +31,7 @@ typedef void (*rotaryActionFunc)(bool clockwise, int id);
 class RotaryEncOverMCP {
   public:
     RotaryEncOverMCP(Adafruit_MCP23017* mcp, byte pinA, byte pinB, rotaryActionFunc actionFunc = nullptr, int id = 0)
-    : mcp(mcp),
-      pinA(pinA), 
-      pinB(pinB),
-      actionFunc(actionFunc), 
-      id(id) {
-        state = R_START;
-    }
+    : mcp(mcp), pinA(pinA), pinB(pinB), actionFunc(actionFunc), id(id), state(R_START) { }
 
     unsigned char process(unsigned char pin1State, unsigned char pin2State) {
       unsigned char pinstate = (pin1State << 1) | pin2State;
@@ -45,17 +39,15 @@ class RotaryEncOverMCP {
       return (state & 0b00110000);
     }
 
-    /* Initialize object in the MCP */
-    void init() {
-        if(mcp != nullptr) {
-            mcp->pinMode(pinA, INPUT);
-            mcp->pullUp(pinA, 1); //disable pullup on this pin
-            mcp->setupInterruptPin(pinA,CHANGE);
-            
-            mcp->pinMode(pinB, INPUT);
-            mcp->pullUp(pinB, 1); //disable pullup on this pin
-            mcp->setupInterruptPin(pinB,CHANGE);
-        }
+    void initialize() {
+      setupPin(pinA);
+      setupPin(pinB);            
+    }
+
+    void setupPin(byte pin){
+      mcp->pinMode(pin, INPUT);
+      mcp->pullUp(pin, 1);
+      mcp->setupInterruptPin(pin,CHANGE);
     }
 
     /* On an interrupt, can be called with the value of the GPIOAB register (or INTCAP) */

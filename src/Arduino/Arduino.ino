@@ -41,12 +41,12 @@ void setup(){
     Serial.begin(115200);
     while(!Serial); Serial.println("asd");
     pinMode(arduinoIntPin,INPUT);Serial.println("asd");
-    mcp.begin();      Serial.println("asd");
+    mcp.begin(); Serial.println("asd");
     mcp.readINTCAPAB(); Serial.println("asd");
     mcp.setupInterrupts(true,false,LOW); Serial.println("asd");
     
     for(int i=0; i < numEncoders; i++) {
-        rotaryEncoders[i].init();
+        rotaryEncoders[i].initialize();
     }
     Serial.println("asd");
     attachInterrupt(digitalPinToInterrupt(arduinoIntPin), intCallBack, FALLING);
@@ -70,11 +70,14 @@ void myPrettyCallback()
 // The int handler will just signal that the int has happened
 // we will do the work from the main loop.
 void intCallBack() {
+  Serial.println("interrupted");
     awakenByInterrupt=true;
 }
 
 void checkInterrupt() {
+  
     if(awakenByInterrupt) {
+      Serial.println("checkInterrupt");
         // disable interrupts while handling them.
         detachInterrupt(digitalPinToInterrupt(arduinoIntPin));
         handleInterrupt();
@@ -103,4 +106,5 @@ void cleanInterrupts(){
 
 void loop() {
   checkInterrupt();
+ 
 }
