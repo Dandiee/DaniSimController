@@ -47,7 +47,7 @@ class RotaryEncOverMCP {
     void setupPin(byte pin){
       mcp->pinMode(pin, INPUT);
       mcp->pullUp(pin, 1);
-      mcp->setupInterruptPin(pin,CHANGE);
+      mcp->setupInterruptPin(pin, RISING);
     }
 
     /* On an interrupt, can be called with the value of the GPIOAB register (or INTCAP) */
