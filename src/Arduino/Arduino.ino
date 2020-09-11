@@ -25,6 +25,31 @@ const byte SSPIN    = 0x06;
 const byte EXP      = 0x20;
 const byte INTPIN   = 0x07;
 
+#define DIR_NONE 0x0
+#define DIR_CW 0x10
+#define DIR_CCW 0x20
+
+#define R_START      0b0000
+#define R_CW_FINAL   0b0001
+#define R_CW_BEGIN   0b0010
+#define R_CW_NEXT    0b0011
+#define R_CCW_BEGIN  0b0100
+#define R_CCW_FINAL  0b0101
+#define R_CCW_NEXT   0b0110
+
+const unsigned char ttable[][4] = 
+{
+  // 00         01           10           11
+  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
+  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
+  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
+  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
+  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
+  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
+  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
+};
+
+char state = R_START;
 bool isInterrupted = false;
 void onInterrupt() { isInterrupted = true; }
 void expWrite(const byte reg, const byte data);
@@ -45,17 +70,18 @@ void setup()
   expWrite(IOCON,    0b01101000);
                                   //                          : 0         1
   expWrite(IODIRA,   0b11111111); // Pin direction            : Output    Input
-  expWrite(GPPUA,    0b00000000); // Pull-up resistor         : Disabled  Enabled
+  expWrite(GPPUA,    0b11111111); // Pull-up resistor         : Disabled  Enabled
   expWrite(IOPOLA,   0b11111111); // IO polarity              : Normal    Inversed
+  expWrite(GPINTENA, 0b11111111); // Interrupt                : Disabled  Enabled
   expWrite(INTCONA,  0b00000000); // Interrupt control        : OnChange  ChangeFrom:DEFVAL
   expWrite(DEFVALA,  0b00000000); // Default intertupt value  : Low       High
-  expWrite(GPINTENA, 0b11111111); // Interrupt                : Disabled  Enabled
-   
+  
   expWrite(IODIRB,   0b11111111); 
   expWrite(GPPUB,    0b00000000); 
+  expWrite(GPINTENB, 0b00000000);
   expWrite(IOPOLB,   0b11111111);
   expWrite(INTCONB,  0b00000000);
-  expWrite(GPINTENB, 0b00000000);
+  
 
   expRead(INTCAPA);
   expRead(INTCAPB);
@@ -71,10 +97,14 @@ void loop()
     byte portA = expRead(GPIOA);
     byte portB = expRead(GPIOB);
 
-    writeBinary(portA);
-    Serial.print("/");
-    writeBinary(portB);
-    Serial.println();
+    byte a = bitRead(portA, 6);
+    byte b = bitRead(portA, 7);
+
+    char result = process(a, b);
+    if (result)
+    {
+      Serial.println(result == DIR_CW ? "CW" : "CCW");  
+    }
 
     attachInterrupt(digitalPinToInterrupt(INTPIN), onInterrupt, FALLING);
     isInterrupted = false;
@@ -106,4 +136,12 @@ byte expRead(const byte reg)
   byte data = SPI.transfer(0);
   digitalWrite(SSPIN, HIGH);
   return data;
+}
+
+
+unsigned char process(unsigned char pin1State, unsigned char pin2State) 
+{
+  unsigned char pinstate = (pin1State << 1) | pin2State;
+  state = ttable[state & 0b00001111][pinstate]; 
+  return (state & 0b00110000);
 }
