@@ -1,7 +1,6 @@
-#include <Wire.h>
 #include <SPI.h>
 
-// MCP23017 registers (everything except direction defaults to 0)
+// MCP23S17 registers
 
 const byte  IODIRA   = 0x00;   // IO direction  (0 = output, 1 = input (Default))
 const byte  IODIRB   = 0x01;
@@ -25,53 +24,137 @@ const byte  GPIOB    = 0x13;
 const byte  OLLATA   = 0x14;   // Output latch. Write to latch output.
 const byte  OLLATB   = 0x15;
 
+const byte ssPin = 6;   
+const byte ports =  0x20;
+const byte intPins = 7;
 
-const byte  DEVICE_ADDRESS = 0x20;  // MCP23017 is on I2C port 0x20
+bool interrupted = false;
+static byte counters[8] = {0,0,0,0,0,0,0,0 };
+byte portALast = 0b00000000;
 
-const byte ssPin = 6;   // slave select pin, if non-zero use SPI
-const byte expanderPort = 0x20;
+//ISR functions
+void handleInterrupt() { interrupted = true; }
 
-// set register "reg" on expander to "data"
-// for example, IO direction
-void expanderWrite (const byte reg, const byte data )
-{
-  // start send
-  digitalWrite (ssPin, LOW);
-  SPI.transfer (expanderPort << 1);  // note this is write mode  
-  
-  SPI.transfer(reg); // send
-  SPI.transfer(data); // send
 
-  // end
-  digitalWrite (ssPin, HIGH);
+//Write to expander
+void expanderWrite (const byte reg, const byte data, const byte port)
+  {
+     digitalWrite (ssPin, LOW);
+     SPI.transfer (port << 1);  // note this is write mode
+     SPI.transfer (reg);
+     SPI.transfer (data);
+     digitalWrite (ssPin, HIGH);
 }
 
+//Read from expander
+byte expanderRead(const byte reg)
+{
+     byte data = 0;
+     digitalWrite (ssPin, LOW);
+     SPI.transfer ((ports << 1) | 1);  // note this is read mode
+     SPI.transfer (reg);
+     data = SPI.transfer (0);
+     digitalWrite (ssPin, HIGH);
 
+     return data;
+}
 
-void setup ()
+void setup()
 {
 
-//Serial.begin();
-//while(!Serial);
-  
-  digitalWrite (ssPin, HIGH);
-  SPI.begin ();
+  Serial.begin(9600);
+  while(!Serial);
+
+  SPI.begin();
+
   pinMode (ssPin, OUTPUT);
-  
+  digitalWrite (ssPin, HIGH);
 
-  // byte mode (not sequential)
-  expanderWrite (IOCON, 0b00100000);
+  pinMode(intPins, INPUT_PULLUP);   
+  attachInterrupt(digitalPinToInterrupt(intPins), handleInterrupt, FALLING);
+ 
   
-  // all pins as outputs
-  expanderWrite (IODIRA, 0);
-  expanderWrite (IODIRB, 0);
-  
-}  // end of setup
+      //Config MCP
+      expanderWrite (IOCON, 0b01101000, ports); //Mirror interrupts, disable sequential mode, enable hardware adressing
+   
+      //Set PORT A registers
+      expanderWrite (IODIRA, 0b11111111, ports); //1 is input
+      expanderWrite (GPPUA, 0b00000000, ports); 
+      expanderWrite (IOPOLA, 0b11111111, ports);
+      expanderWrite (INTCONA, 0b00000000, ports);
+      expanderWrite (GPINTENA, 0b11111111, ports);
+   
+      //Set PORT B registers
+      expanderWrite (IODIRB, 0b11111111, ports); //1 is input
+      expanderWrite (GPPUB, 0b00000000, ports); 
+      expanderWrite (IOPOLB, 0b11111111, ports);
+      expanderWrite (INTCONB, 0b00000000, ports);
+      expanderWrite (GPINTENB, 0b00000000, ports);
 
-void loop ()
-{
-  expanderWrite (GPIOA, 0xAA);
-  delay (100);  
-  expanderWrite (GPIOA, 0);
-  delay (100);  
+  expanderRead(INTCAPA);
+  expanderRead(INTCAPB);
+
+      Serial.println("started");
+  
 }
+
+void loop()
+{
+  
+      if(interrupted)
+      {
+       
+        interrupted = false;
+        byte portA = expanderRead(GPIOA);
+        byte portB = expanderRead(GPIOB);
+   
+        //Check which pin of the encoder caused interrupt and and check the value of pin A
+       
+        byte mask = 0;
+        byte i = 0;
+        byte aLast;
+        byte aCurrent;
+               
+        for(i = 0; i < 8; i++)
+        {
+   
+            mask = 1 << i;
+            aLast = portALast & mask;
+            aCurrent = portA & mask;
+   
+            if(aLast ^ aCurrent)
+            {
+              break;
+            }
+         
+        }
+
+        //Then determine the direction of rotation if its the raising edge of the square wave
+        if(aCurrent)
+        {
+          if(!aLast)
+          {
+            portALast = portA;
+            byte bState = mask & portB;
+           
+            if(bState) //Clockwise
+            {
+             
+             counters[i]++;
+            }else{ //Counter-Clockwise
+              counters[i]--;;
+            } 
+
+            Serial.print(i);
+            Serial.print(") : ");
+            Serial.println(counters[i]);           
+           
+          }
+        }else{
+          if(aLast)
+          {
+            portALast = portA;
+          }
+        }
+      }
+  } 
