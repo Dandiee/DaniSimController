@@ -43,14 +43,15 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(INTPIN), onInterrupt, FALLING);
 
   expWrite(IOCON,    0b01101000);
-  
-  expWrite(IODIRA,   0b11111111); //1 is input
-  expWrite(GPPUA,    0b00000000); 
-  expWrite(IOPOLA,   0b11111111);
-  expWrite(INTCONA,  0b00000000);
-  expWrite(GPINTENA, 0b11111111);
+                                  //                          : 0         1
+  expWrite(IODIRA,   0b11111111); // Pin direction            : Output    Input
+  expWrite(GPPUA,    0b00000000); // Pull-up resistor         : Disabled  Enabled
+  expWrite(IOPOLA,   0b11111111); // IO polarity              : Normal    Inversed
+  expWrite(INTCONA,  0b00000000); // Interrupt control        : OnChange  ChangeFrom:DEFVAL
+  expWrite(DEFVALA,  0b00000000); // Default intertupt value  : Low       High
+  expWrite(GPINTENA, 0b11111111); // Interrupt                : Disabled  Enabled
    
-  expWrite(IODIRB,   0b11111111); //1 is input
+  expWrite(IODIRB,   0b11111111); 
   expWrite(GPPUB,    0b00000000); 
   expWrite(IOPOLB,   0b11111111);
   expWrite(INTCONB,  0b00000000);
