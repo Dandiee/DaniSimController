@@ -1,4 +1,5 @@
 #include <SPI.h>
+#include "Encoder.h"
 const byte IODIRA   = 0x00;   // IO direction  (0 = output, 1 = input (Default))
 const byte IODIRB   = 0x01;
 const byte IOPOLA   = 0x02;   // IO polarity   (0 = normal, 1 = inverse)
@@ -25,31 +26,8 @@ const byte SSPIN    = 0x06;
 const byte EXP      = 0x20;
 const byte INTPIN   = 0x07;
 
-#define DIR_NONE 0x0
-#define DIR_CW 0x10
-#define DIR_CCW 0x20
-
-#define R_START      0b0000
-#define R_CW_FINAL   0b0001
-#define R_CW_BEGIN   0b0010
-#define R_CW_NEXT    0b0011
-#define R_CCW_BEGIN  0b0100
-#define R_CCW_FINAL  0b0101
-#define R_CCW_NEXT   0b0110
-
-const unsigned char ttable[][4] = 
-{
-  // 00         01           10           11
-  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
-  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
-  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
-  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
-  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
-  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
-  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
-};
-
-char state = R_START;
+Encoder encoders[] = { Encoder(6, 7) };
+byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 bool isInterrupted = false;
 void onInterrupt() { isInterrupted = true; }
 void expWrite(const byte reg, const byte data);
@@ -97,15 +75,15 @@ void loop()
     byte portA = expRead(GPIOA);
     byte portB = expRead(GPIOB);
 
-    byte a = bitRead(portA, 6);
-    byte b = bitRead(portA, 7);
-
-    char result = process(a, b);
-    if (result)
+    for (byte i = 0; i < numberOfEncoders; i++)
     {
-      Serial.println(result == DIR_CW ? "CW" : "CCW");  
+      byte result = encoders[i].process(portA);
+      if (result)
+      {
+        Serial.println(result == DIR_CW ? "CW" : "CCW");  
+      }  
     }
-
+    
     attachInterrupt(digitalPinToInterrupt(INTPIN), onInterrupt, FALLING);
     isInterrupted = false;
   }
@@ -136,12 +114,4 @@ byte expRead(const byte reg)
   byte data = SPI.transfer(0);
   digitalWrite(SSPIN, HIGH);
   return data;
-}
-
-
-unsigned char process(unsigned char pin1State, unsigned char pin2State) 
-{
-  unsigned char pinstate = (pin1State << 1) | pin2State;
-  state = ttable[state & 0b00001111][pinstate]; 
-  return (state & 0b00110000);
 }
