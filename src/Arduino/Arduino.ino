@@ -1,7 +1,3 @@
-// MCP23017 and MCP23S17 demo
-// Author: Nick Gammon
-// Date: 11 September 2015
-
 #include <Wire.h>
 #include <SPI.h>
 
@@ -38,45 +34,19 @@ const byte expanderPort = 0x20;
 // set register "reg" on expander to "data"
 // for example, IO direction
 void expanderWrite (const byte reg, const byte data )
-  {
-  startSend ();
-    doSend (reg);
-    doSend (data);
-  endSend ();
-} // end of expanderWrite
-
-// prepare for sending to MCP23017
-void startSend ()  
 {
+  // start send
+  digitalWrite (ssPin, LOW);
+  SPI.transfer (expanderPort << 1);  // note this is write mode  
   
-  if (ssPin)
-    {
-    digitalWrite (ssPin, LOW);
-    SPI.transfer (expanderPort << 1);  // note this is write mode
-    }
-  else
-    Wire.beginTransmission (expanderPort);
-  
-}  // end of startSend
+  SPI.transfer(reg); // send
+  SPI.transfer(data); // send
 
-// send a byte via SPI or I2C
-void doSend (const byte what)  
-{
-  if (ssPin)
-    SPI.transfer (what);
-  else
-    Wire.write (what);
-}  // end of doSend
+  // end
+  digitalWrite (ssPin, HIGH);
+}
 
-// finish sending to MCP23017
-void endSend ()  
-{
-  if (ssPin)
-    digitalWrite (ssPin, HIGH);
-  else
-    Wire.endTransmission ();
- 
-}  // end of endSend
+
 
 void setup ()
 {
@@ -84,14 +54,10 @@ void setup ()
 //Serial.begin();
 //while(!Serial);
   
-  if (ssPin)  // if we have an SS pin it is SPI mode
-    {
-    digitalWrite (ssPin, HIGH);
-    SPI.begin ();
-    pinMode (ssPin, OUTPUT);
-    }
-  else
-    Wire.begin (DEVICE_ADDRESS);  
+  digitalWrite (ssPin, HIGH);
+  SPI.begin ();
+  pinMode (ssPin, OUTPUT);
+  
 
   // byte mode (not sequential)
   expanderWrite (IOCON, 0b00100000);
@@ -103,9 +69,9 @@ void setup ()
 }  // end of setup
 
 void loop ()
-  {
+{
   expanderWrite (GPIOA, 0xAA);
   delay (100);  
   expanderWrite (GPIOA, 0);
   delay (100);  
-  }  // end of loop
+}
