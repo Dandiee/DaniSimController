@@ -1,163 +1,111 @@
+// MCP23017 and MCP23S17 demo
+// Author: Nick Gammon
+// Date: 11 September 2015
+
 #include <Wire.h>
-#define IODIRA   0x00   // IO direction  (0 = output, 1 = input (Default))
-#define IODIRB   0x01
-#define IOPOLA   0x02   // IO polarity   (0 = normal, 1 = inverse)
-#define IOPOLB   0x03
-#define GPINTENA 0x04   // Interrupt on change (0 = disable, 1 = enable)
-#define GPINTENB 0x05
-#define DEFVALA  0x06   // Default comparison for interrupt on change (interrupts on opposite)
-#define DEFVALB  0x07
-#define INTCONA  0x08   // Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
-#define INTCONB  0x09
-#define IOCONA   0x0A   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
-#define IOCONB   0x0B  // same as 0x0A
-#define GPPUA    0x0C   // Pull-up resistor (0 = disabled, 1 = enabled)
-#define GPPUB    0x0D
-#define INFTFA   0x0E   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
-#define INFTFB   0x0F
-#define INTCAPA  0x10   // Interrupt capture (read only) : value of GPIO at time of last interrupt
-#define INTCAPB  0x11
-#define GPIOA    0x12   // Port value. Write to change, read to obtain value
-#define GPIOB    0x13
-#define OLLATA   0x14   // Output latch. Write to latch output.
-#define OLLATB   0x15
-#define port     0x20  // MCP23017 is on I2C port 0x20
+#include <SPI.h>
+
+// MCP23017 registers (everything except direction defaults to 0)
+
+const byte  IODIRA   = 0x00;   // IO direction  (0 = output, 1 = input (Default))
+const byte  IODIRB   = 0x01;
+const byte  IOPOLA   = 0x02;   // IO polarity   (0 = normal, 1 = inverse)
+const byte  IOPOLB   = 0x03;
+const byte  GPINTENA = 0x04;   // Interrupt on change (0 = disable, 1 = enable)
+const byte  GPINTENB = 0x05;
+const byte  DEFVALA  = 0x06;   // Default comparison for interrupt on change (interrupts on opposite)
+const byte  DEFVALB  = 0x07;
+const byte  INTCONA  = 0x08;   // Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
+const byte  INTCONB  = 0x09;
+const byte  IOCON    = 0x0A;   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
+const byte  GPPUA    = 0x0C;   // Pull-up resistor (0 = disabled, 1 = enabled)
+const byte  GPPUB    = 0x0D;
+const byte  INFTFA   = 0x0E;   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
+const byte  INFTFB   = 0x0F;
+const byte  INTCAPA  = 0x10;   // Interrupt capture (read only) : value of GPIO at time of last interrupt
+const byte  INTCAPB  = 0x11;
+const byte  GPIOA    = 0x12;   // Port value. Write to change, read to obtain value
+const byte  GPIOB    = 0x13;
+const byte  OLLATA   = 0x14;   // Output latch. Write to latch output.
+const byte  OLLATB   = 0x15;
 
 
-#define DIR_NONE 0x0
-#define DIR_CW 0x10
-#define DIR_CCW 0x20
+const byte  DEVICE_ADDRESS = 0x20;  // MCP23017 is on I2C port 0x20
 
-#define R_START      0b0000
-#define R_CW_FINAL   0b0001
-#define R_CW_BEGIN   0b0010
-#define R_CW_NEXT    0b0011
-#define R_CCW_BEGIN  0b0100
-#define R_CCW_FINAL  0b0101
-#define R_CCW_NEXT   0b0110
+const byte ssPin = 6;   // slave select pin, if non-zero use SPI
+const byte expanderPort = 0x20;
 
-unsigned char state;
-const unsigned char ttable[][4] = 
+// set register "reg" on expander to "data"
+// for example, IO direction
+void expanderWrite (const byte reg, const byte data )
+  {
+  startSend ();
+    doSend (reg);
+    doSend (data);
+  endSend ();
+} // end of expanderWrite
+
+// prepare for sending to MCP23017
+void startSend ()  
 {
-  // 00         01           10           11
-  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
-  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
-  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
-  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
-  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
-  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
-  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
-};
+  
+  if (ssPin)
+    {
+    digitalWrite (ssPin, LOW);
+    SPI.transfer (expanderPort << 1);  // note this is write mode
+    }
+  else
+    Wire.beginTransmission (expanderPort);
+  
+}  // end of startSend
 
-volatile bool keyPressed = false;
-unsigned int keyValue = 0;
-
-void expanderWriteBoth (const byte reg, const byte data )
+// send a byte via SPI or I2C
+void doSend (const byte what)  
 {
-  Wire.beginTransmission (port);
-  Wire.write (reg);
-  Wire.write (data);  // port A
-  Wire.write (data);  // port B
-  Wire.endTransmission ();
-} 
+  if (ssPin)
+    SPI.transfer (what);
+  else
+    Wire.write (what);
+}  // end of doSend
 
-unsigned int expanderRead (const byte reg)
+// finish sending to MCP23017
+void endSend ()  
 {
-  Wire.beginTransmission (port);
-  Wire.write (reg);
-  Wire.endTransmission ();
-  Wire.requestFrom (port, 1);
-  return Wire.read();
-}
-
-void keypress ()
-{
-  keyPressed = true;   // set flag so main loop knows
-}
+  if (ssPin)
+    digitalWrite (ssPin, HIGH);
+  else
+    Wire.endTransmission ();
+ 
+}  // end of endSend
 
 void setup ()
 {
-  Wire.begin ();  
-  Serial.begin (115200);
-  while(!Serial);
- 
 
-  // setupInterrupts(uint8_t mirroring, uint8_t openDrain, uint8_t polarity)
-  uint8_t ioconfValue = expanderRead(IOCONA);
-  bitWrite(ioconfValue, 6, true);
-  bitWrite(ioconfValue, 2, true);
-  bitWrite(ioconfValue, 1, LOW);
-  expanderWriteBoth(IOCONA, ioconfValue);
+//Serial.begin();
+//while(!Serial);
   
-  ioconfValue = expanderRead(IOCONB);
-  bitWrite(ioconfValue, 6, true); // MIRRORING: OR both INTA and INTB pins.
-  bitWrite(ioconfValue, 2, true); // OPENDRAIN: set the INT pin to value or open drain
-  bitWrite(ioconfValue, 1, LOW);  // POLARITY: LOW or HIGH on interrupt
-  expanderWriteBoth(IOCONB, ioconfValue);
-
-
-  // pinMode(12, INPUT);
-  updateRegisterBit(7, 1, IODIRA, IODIRB); // 1: INPUT, 0: OUTPUT
-
-  // pullUp
-  updateRegisterBit(7, 1, GPPUA, GPPUB); // 1: PULLUP
-
-  // setupInterruptOnPin
-  updateRegisterBit(7, 0, INTCONA, INTCONB); // 0 = change; 1 = compare against value
-  updateRegisterBit(7, 1, DEFVALA, DEFVALB); // 0 = rising; 1 = faiilng
-  updateRegisterBit(7, 1, GPINTENA, GPINTENB); // enable interrupt
-
-  updateRegisterBit(6, 0, INTCONA, INTCONB); // 0 = change; 1 = compare against value
-  updateRegisterBit(6, 1, DEFVALA, DEFVALB); // 0 = rising; 1 = faiilng
-  updateRegisterBit(6, 1, GPINTENA, GPINTENB); // enable interrupt
-  
-  // read from interrupt capture ports to clear them
-  
-  Serial.println(expanderRead(INTCAPA));
-  Serial.println(expanderRead(INTCAPB));
-  //expanderRead(INTCAPB);
-  
-  pinMode(7, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(7), keypress, FALLING);
-  Serial.println ("Started");
-}  
-
- unsigned char process(unsigned char pin1State, unsigned char pin2State) {
-      unsigned char pinstate = (pin1State << 1) | pin2State;
-      state = ttable[state & 0b00001111][pinstate]; 
-      return (state & 0b00110000);
+  if (ssPin)  // if we have an SS pin it is SPI mode
+    {
+    digitalWrite (ssPin, HIGH);
+    SPI.begin ();
+    pinMode (ssPin, OUTPUT);
     }
+  else
+    Wire.begin (DEVICE_ADDRESS);  
 
-void updateRegisterBit(uint8_t pin, uint8_t pValue, uint8_t portAaddr, uint8_t portBaddr) {
-  uint8_t regValue;
-  uint8_t regAddr = getRegisterAddress(pin, portAaddr, portBaddr);
-  uint8_t result = pin%8;
-  regValue = expanderRead(regAddr);
-  bitWrite(regValue, result, pValue);
-  expanderWriteBoth(regAddr, regValue);
-}
-
-uint8_t getRegisterAddress(uint8_t pin, uint8_t portAaddr, uint8_t portBaddr){
-  return(pin<8) ? portAaddr : portBaddr;
-}
-
-void handleKeypress ()
-{
-  keyPressed = false;
-
-  if (expanderRead(INFTFA))
-  {
-    keyValue &= 0xFF00;
-    keyValue |= expanderRead (INTCAPA);    // read value at time of interrupt
-    
-    byte a = bitRead(keyValue, 6);
-    byte b = bitRead(keyValue, 7);
-    Serial.print(a); Serial.println(b);    
-  }
-}  
+  // byte mode (not sequential)
+  expanderWrite (IOCON, 0b00100000);
+  
+  // all pins as outputs
+  expanderWrite (IODIRA, 0);
+  expanderWrite (IODIRB, 0);
+  
+}  // end of setup
 
 void loop ()
-{
-  if (keyPressed)
-    handleKeypress ();
-}
+  {
+  expanderWrite (GPIOA, 0xAA);
+  delay (100);  
+  expanderWrite (GPIOA, 0);
+  delay (100);  
+  }  // end of loop
