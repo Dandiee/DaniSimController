@@ -1,8 +1,6 @@
 #ifndef SRC_ROTARYENCOVERMCP_H_
 #define SRC_ROTARYENCOVERMCP_H_
 
-
-#include "Adafruit_MCP23017.h"
 #define DIR_NONE 0x0
 #define DIR_CW 0x10
 #define DIR_CCW 0x20
@@ -15,7 +13,7 @@
 #define R_CCW_FINAL  0b0101
 #define R_CCW_NEXT   0b0110
 
-const unsigned char ttable[][4] = 
+const byte stateTable[][4] = 
 {
   // 00         01           10           11
   {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
@@ -27,56 +25,42 @@ const unsigned char ttable[][4] =
   {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
 };
 
-typedef void (*rotaryActionFunc)(bool clockwise, int id);
-class RotaryEncOverMCP {
+typedef void (*encoderCallback)(int8_t change, byte id, int value);
+class Encoder 
+{
   public:
-    RotaryEncOverMCP(Adafruit_MCP23017* mcp, byte pinA, byte pinB, rotaryActionFunc actionFunc = nullptr, int id = 0)
-    : mcp(mcp), pinA(pinA), pinB(pinB), actionFunc(actionFunc), id(id), state(R_START) { }
+    Encoder(byte pinA, byte pinB, byte id, encoderCallback callback = nullptr)
+    : pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) { }
 
-    unsigned char process(unsigned char pin1State, unsigned char pin2State) {
-      unsigned char pinstate = (pin1State << 1) | pin2State;
-      state = ttable[state & 0b00001111][pinstate]; 
-      return (state & 0b00110000);
-    }
+    byte process(byte gpioState) 
+    {
+      byte pin1State = bitRead(gpioState, pinA);
+      byte pin2State = bitRead(gpioState, pinB);
+      
+      byte pinstate = (pin1State << 1) | pin2State;
+      state = stateTable[state & 0b00001111][pinstate]; 
+      byte result = (state & 0b00110000);
 
-    void initialize() {
-      setupPin(pinA);
-      setupPin(pinB);            
-    }
-
-    void setupPin(byte pin) {
-      mcp->pinMode(pin, INPUT);
-      mcp->pullUp(pin, 1);
-      mcp->setupInterruptPin(pin, CHANGE);
-    }
-
-    /* On an interrupt, can be called with the value of the GPIOAB register (or INTCAP) */
-    void feedInput(uint16_t gpioAB) {
-        uint8_t pinValA = bitRead(gpioAB, pinA);
-        uint8_t pinValB = bitRead(gpioAB, pinB);
-        uint8_t event = process(pinValA, pinValB);
-        if(event == DIR_CW || event == DIR_CCW) {
-            //clock wise or counter-clock wise
-            bool clockwise = event == DIR_CW;
-            //Call into action function if registered
-            if(actionFunc) {
-                actionFunc(clockwise, id);
-            }
+      if (result)
+      {
+        int8_t change = result== DIR_CW ? -1 : 1;
+        value += change;
+        if (callback)
+        {
+          callback(change, id, value);      
         }
-    }
+      }
 
-    Adafruit_MCP23017* getMCP() {
-        return mcp;
+      return result;
     }
-
-private:
-    Adafruit_MCP23017* mcp = nullptr;
-    uint8_t pinA = 0;
-    uint8_t pinB = 0;           /* the pin numbers for output A and output B */
-    rotaryActionFunc actionFunc = nullptr;  /* function pointer, will be called when there is an action happening */
-    int id = 0;                             /* optional ID for identification */
-    unsigned char state;
+    
+  private:
+    byte pinA = 0;
+    byte pinB = 0;
+    byte id = 0;
+    encoderCallback callback = nullptr;
+    byte state = 0;
+    int value = 0;
 };
-
 
 #endif /* SRC_ROTARYENCOVERMCP_H_ */

@@ -26,7 +26,12 @@ const byte SSPIN    = 0x06;
 const byte EXP      = 0x20;
 const byte INTPIN   = 0x07;
 
-Encoder encoders[] = { Encoder(6, 7) };
+void onEncoderChanged(int8_t change, byte id, int value);
+Encoder encoders[] = 
+{ 
+  Encoder(4, 5, 1, onEncoderChanged),
+  Encoder(6, 7, 2, onEncoderChanged)
+};
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 bool isInterrupted = false;
 void onInterrupt() { isInterrupted = true; }
@@ -77,11 +82,7 @@ void loop()
 
     for (byte i = 0; i < numberOfEncoders; i++)
     {
-      byte result = encoders[i].process(portA);
-      if (result)
-      {
-        Serial.println(result == DIR_CW ? "CW" : "CCW");  
-      }  
+      encoders[i].process(portA);
     }
     
     attachInterrupt(digitalPinToInterrupt(INTPIN), onInterrupt, FALLING);
@@ -114,4 +115,14 @@ byte expRead(const byte reg)
   byte data = SPI.transfer(0);
   digitalWrite(SSPIN, HIGH);
   return data;
+}
+
+void onEncoderChanged(int8_t change, byte id, int value) 
+{
+  Serial.print(id);
+  Serial.print(":");
+  Serial.print(change);
+  Serial.print(" (");
+  Serial.print(value);
+  Serial.println(")");
 }
