@@ -24,6 +24,31 @@
 #define port     0x20  // MCP23017 is on I2C port 0x20
 
 
+#define DIR_NONE 0x0
+#define DIR_CW 0x10
+#define DIR_CCW 0x20
+
+#define R_START      0b0000
+#define R_CW_FINAL   0b0001
+#define R_CW_BEGIN   0b0010
+#define R_CW_NEXT    0b0011
+#define R_CCW_BEGIN  0b0100
+#define R_CCW_FINAL  0b0101
+#define R_CCW_NEXT   0b0110
+
+unsigned char state;
+const unsigned char ttable[][4] = 
+{
+  // 00         01           10           11
+  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
+  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
+  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
+  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
+  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
+  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
+  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
+};
+
 volatile bool keyPressed = false;
 unsigned int keyValue = 0;
 
@@ -47,7 +72,6 @@ unsigned int expanderRead (const byte reg)
 
 void keypress ()
 {
-  s("keypress");
   keyPressed = true;   // set flag so main loop knows
 }
 
@@ -60,13 +84,13 @@ void setup ()
 
   // setupInterrupts(uint8_t mirroring, uint8_t openDrain, uint8_t polarity)
   uint8_t ioconfValue = expanderRead(IOCONA);
-  bitWrite(ioconfValue, 6, false);
+  bitWrite(ioconfValue, 6, true);
   bitWrite(ioconfValue, 2, true);
   bitWrite(ioconfValue, 1, LOW);
   expanderWriteBoth(IOCONA, ioconfValue);
   
   ioconfValue = expanderRead(IOCONB);
-  bitWrite(ioconfValue, 6, false); // MIRRORING: OR both INTA and INTB pins.
+  bitWrite(ioconfValue, 6, true); // MIRRORING: OR both INTA and INTB pins.
   bitWrite(ioconfValue, 2, true); // OPENDRAIN: set the INT pin to value or open drain
   bitWrite(ioconfValue, 1, LOW);  // POLARITY: LOW or HIGH on interrupt
   expanderWriteBoth(IOCONB, ioconfValue);
@@ -79,36 +103,30 @@ void setup ()
   updateRegisterBit(7, 1, GPPUA, GPPUB); // 1: PULLUP
 
   // setupInterruptOnPin
-  updateRegisterBit(7, 1, INTCONA, INTCONB); // 0 = change; 1 = compare against value
+  updateRegisterBit(7, 0, INTCONA, INTCONB); // 0 = change; 1 = compare against value
   updateRegisterBit(7, 1, DEFVALA, DEFVALB); // 0 = rising; 1 = faiilng
   updateRegisterBit(7, 1, GPINTENA, GPINTENB); // enable interrupt
+
+  updateRegisterBit(6, 0, INTCONA, INTCONB); // 0 = change; 1 = compare against value
+  updateRegisterBit(6, 1, DEFVALA, DEFVALB); // 0 = rising; 1 = faiilng
+  updateRegisterBit(6, 1, GPINTENA, GPINTENB); // enable interrupt
   
   // read from interrupt capture ports to clear them
   
   Serial.println(expanderRead(INTCAPA));
   Serial.println(expanderRead(INTCAPB));
-
-  Serial.println(expanderRead(INTCAPA));
-  Serial.println(expanderRead(INTCAPB));
-
-  while(expanderRead(INTCAPB))
-  {
-    Serial.println("expanderRead(INTCAPB)");
-  }
-
-  while(expanderRead(INTCAPA))
-  {
-    Serial.println("expanderRead(INTCAPB)");
-  }
   //expanderRead(INTCAPB);
   
   pinMode(7, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(7), keypress, FALLING);
   Serial.println ("Started");
-  
-
 }  
 
+ unsigned char process(unsigned char pin1State, unsigned char pin2State) {
+      unsigned char pinstate = (pin1State << 1) | pin2State;
+      state = ttable[state & 0b00001111][pinstate]; 
+      return (state & 0b00110000);
+    }
 
 void updateRegisterBit(uint8_t pin, uint8_t pValue, uint8_t portAaddr, uint8_t portBaddr) {
   uint8_t regValue;
@@ -123,33 +141,19 @@ uint8_t getRegisterAddress(uint8_t pin, uint8_t portAaddr, uint8_t portBaddr){
   return(pin<8) ? portAaddr : portBaddr;
 }
 
-// called from main loop when we know we had an interrupt
 void handleKeypress ()
 {
-  keyPressed = false;  // ready for next time through the interrupt service routine
+  keyPressed = false;
 
-  // Read port values, as required. Note that this re-arms the interrupts.
-  if (expanderRead (INFTFA))
-  {
-    keyValue &= 0x00FF;
-    keyValue |= expanderRead (INTCAPA) << 8;    // read value at time of interrupt
-  }
-  if (expanderRead (INFTFB))
+  if (expanderRead(INFTFA))
   {
     keyValue &= 0xFF00;
-    keyValue |= expanderRead (INTCAPB);        // port B is in low-order byte
+    keyValue |= expanderRead (INTCAPA);    // read value at time of interrupt
+    
+    byte a = bitRead(keyValue, 6);
+    byte b = bitRead(keyValue, 7);
+    Serial.print(a); Serial.println(b);    
   }
-
-    for (byte button = 0; button < 16; button++)
-    {
-        Serial.print((keyValue >> button) & 1);
-    }
-
-  Serial.println();
-
-  //Serial.print(((keyValue & 0b01000000) == 0b01000000));
-  //Serial.println(((keyValue & 0b10000000) == 0b10000000));
- 
 }  
 
 void loop ()
@@ -157,5 +161,3 @@ void loop ()
   if (keyPressed)
     handleKeypress ();
 }
-
-void s(String chars){ Serial.println(chars); }
