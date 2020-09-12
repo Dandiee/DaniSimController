@@ -11,6 +11,10 @@ Encoder encoders[] =
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander();
 Display display = Display(8, 9, 10);
+uint16_t interruptQueue[64];
+byte interruptsCount = 0;
+
+bool isWriting = false;
 
 void setup()
 {
@@ -22,16 +26,43 @@ void setup()
 
 void loop()
 { 
-  display.showNumberDec(encoders[0].value, false, 4, 0);
+  //display.showNumberDec(encoders[0].value, false, 4, 0);
+
+  if (interruptsCount)
+  {
+    
+  }
+
+  if (!isWriting)
+  {
+    if(interruptsCount)
+    {
+      if(interruptsCount > 1)
+      {
+        Serial.println(interruptsCount);
+      }
+      for (int i = 0; i < interruptsCount; i++)
+      {
+        uint16_t nextEvent = interruptQueue[i];
+        
+        for (int j = 0; j < numberOfEncoders; j++)
+        {
+          encoders[j].process(nextEvent);   
+        }
+
+        interruptsCount = 0;
+      }
+    }
+  }
   
-  uint16_t gpioState = expander.readGpioState();
+  /*uint16_t gpioState = expander.readGpioState();
   if (gpioState)
   {
     for (byte i = 0; i < numberOfEncoders; i++)
     {
       encoders[i].process(gpioState);
     }
-  }
+  }*/
 }
 
 void onEncoderChanged(int8_t change, byte id, int value) 
@@ -44,7 +75,14 @@ void onEncoderChanged(int8_t change, byte id, int value)
   Serial.println(")");
 }
 
+
+
 void onExpanderInterrupt()
 {
-  expander.isInterrupted = true;
+  isWriting = true;
+  //detachInterrupt(digitalPinToInterrupt(INTPIN));
+  interruptQueue[interruptsCount] = expander.readAndReset();
+  interruptsCount++;
+  //attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
+  isWriting = false;
 }

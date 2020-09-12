@@ -82,6 +82,15 @@ class Expander
       return 0;
     }
 
+    uint16_t readAndReset()
+    {
+        byte portA = read(GPIOA);
+        byte portB = read(GPIOB);
+
+        return ((portB << 8) | portA);
+    }
+    
+
     bool isInterrupted = false;
     
   private:
