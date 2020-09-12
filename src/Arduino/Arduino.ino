@@ -14,9 +14,7 @@ void setup()
 {
   Serial.begin(9600);
   while(!Serial);
-
   expander.begin();
-
   Serial.println("kickin");
 }
 
