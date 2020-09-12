@@ -1,108 +1,255 @@
-void onExpanderInterrupt();
+#ifndef SRC_DANIDISPLAY_H_
+#define SRC_DANIDISPLAY_H_
 
-#ifndef SRC_DANIMCP23S17_H_
-#define SRC_DANIMCP23S17_H_
-#include <SPI.h>
+#define TM1637_I2C_COMM1    0x40
+#define TM1637_I2C_COMM2    0xC0
+#define TM1637_I2C_COMM3    0x80
 
-const byte IODIRA   = 0x00;   // IO direction  (0 = output, 1 = input (Default))
-const byte IODIRB   = 0x01;
-const byte IOPOLA   = 0x02;   // IO polarity   (0 = normal, 1 = inverse)
-const byte IOPOLB   = 0x03;
-const byte GPINTENA = 0x04;   // Interrupt on change (0 = disable, 1 = enable)
-const byte GPINTENB = 0x05;
-const byte DEFVALA  = 0x06;   // Default comparison for interrupt on change (interrupts on opposite)
-const byte DEFVALB  = 0x07;
-const byte INTCONA  = 0x08;   // Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
-const byte INTCONB  = 0x09;
-const byte IOCON    = 0x0A;   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
-const byte GPPUA    = 0x0C;   // Pull-up resistor (0 = disabled, 1 = enabled)
-const byte GPPUB    = 0x0D;
-const byte INFTFA   = 0x0E;   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
-const byte INFTFB   = 0x0F;
-const byte INTCAPA  = 0x10;   // Interrupt capture (read only) : value of GPIO at time of last interrupt
-const byte INTCAPB  = 0x11;
-const byte GPIOA    = 0x12;   // Port value. Write to change, read to obtain value
-const byte GPIOB    = 0x13;
-const byte OLLATA   = 0x14;   // Output latch. Write to latch output.
-const byte OLLATB   = 0x15;
+//
+//      A
+//     ---
+//  F |   | B
+//     -G-
+//  E |   | C
+//     ---
+//      D
+const byte digitToSegment[] = {
+ // XGFEDCBA
+  0b00111111,    // 0
+  0b00000110,    // 1
+  0b01011011,    // 2
+  0b01001111,    // 3
+  0b01100110,    // 4
+  0b01101101,    // 5
+  0b01111101,    // 6
+  0b00000111,    // 7
+  0b01111111,    // 8
+  0b01101111,    // 9
+  0b01110111,    // A
+  0b01111100,    // b
+  0b00111001,    // C
+  0b01011110,    // d
+  0b01111001,    // E
+  0b01110001     // F
+};
 
-const byte SSPIN    = 0x06;   
-const byte EXP      = 0x20;
-const byte INTPIN   = 0x07;
+static const byte minusSegments = 0b01000000;
 
-class Expander
+const byte clearData[] = { 0, 0, 0, 0 };
+
+class Display
 {
   public:
-    Expander() { }
-
-    void begin()
+    Display(byte clkPin, byte dioPin, uint32_t delayInMicrosec) 
+      : clkPin(clkPin), dioPin(dioPin), delayInMicrosec(delayInMicrosec), displayedValue(displayedValue)
     {
-      SPI.begin();
-      pinMode(SSPIN, OUTPUT);
-      write(SSPIN, HIGH);
-
-      pinMode(INTPIN, INPUT_PULLUP);   
-      attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
-    
-      write(IOCON,    0b01101000);
-                                      //                          : 0         1
-      write(IODIRA,   0b11111111); // Pin direction            : Output    Input
-      write(GPPUA,    0b11111111); // Pull-up resistor         : Disabled  Enabled
-      write(IOPOLA,   0b11111111); // IO polarity              : Normal    Inversed
-      write(GPINTENA, 0b11111111); // Interrupt                : Disabled  Enabled
-      write(INTCONA,  0b00000000); // Interrupt control        : OnChange  ChangeFrom:DEFVAL
-      write(DEFVALA,  0b00000000); // Default intertupt value  : Low       High
+      brightness = 8;
       
-      write(IODIRB,   0b11111111); 
-      write(GPPUB,    0b00000000); 
-      write(GPINTENB, 0b00000000);
-      write(IOPOLB,   0b11111111);
-      write(INTCONB,  0b00000000);
+      pinMode(clkPin, INPUT);
+      pinMode(dioPin, INPUT);
       
-      read(INTCAPA);
-      read(INTCAPB);
+      digitalWrite(clkPin, LOW);
+      digitalWrite(dioPin, LOW);
     }
 
-    uint16_t readGpioState()
+    void setDelay(byte delayInMs)
     {
-      if (isInterrupted)
+      
+    }
+
+    void setBrightness(byte value, bool isOn)
+    {
+      brightness = (value & 0x7) | (isOn ? 0x08 : 0x00);
+    }
+
+    void clear()
+    {
+      // setSegments(clearData);
+    }
+
+    void showNumberDec(int num, bool leading_zero, uint8_t length, uint8_t pos)
+    {
+      if (num != displayedValue)
       {
-        detachInterrupt(digitalPinToInterrupt(INTPIN));
-        byte portA = read(GPIOA);
-        byte portB = read(GPIOB);
-
-        uint16_t result = ((portB << 8) | portA);
-           
-        attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
-        isInterrupted = false;
-
-        return result;
+        showNumberDecEx(num, 0, leading_zero, length, pos);
+        displayedValue = num;
       }
-
-      return 0;
+    }
+    
+    void showNumberDecEx(int num, uint8_t dots, bool leading_zero,
+                                        uint8_t length, uint8_t pos)
+    {
+      showNumberBaseEx(num < 0? -10 : 10, num < 0? -num : num, dots, leading_zero, length, pos);
+    }
+    
+    void showNumberHexEx(uint16_t num, uint8_t dots, bool leading_zero,
+                                        uint8_t length, uint8_t pos)
+    {
+      showNumberBaseEx(16, num, dots, leading_zero, length, pos);
+    }
+    
+    void showNumberBaseEx(int8_t base, uint16_t num, uint8_t dots, bool leading_zero,
+                                        uint8_t length, uint8_t pos)
+    {
+        bool negative = false;
+      if (base < 0) {
+          base = -base;
+        negative = true;
+      }
+    
+    
+        uint8_t digits[4];
+    
+      if (num == 0 && !leading_zero) {
+        // Singular case - take care separately
+        for(uint8_t i = 0; i < (length-1); i++)
+          digits[i] = 0;
+        digits[length-1] = encodeDigit(0);
+      }
+      else {
+        //uint8_t i = length-1;
+        //if (negative) {
+        //  // Negative number, show the minus sign
+        //    digits[i] = minusSegments;
+        //  i--;
+        //}
+        
+        for(int i = length-1; i >= 0; --i)
+        {
+            uint8_t digit = num % base;
+          
+          if (digit == 0 && num == 0 && leading_zero == false)
+              // Leading zero is blank
+            digits[i] = 0;
+          else
+              digits[i] = encodeDigit(digit);
+            
+          if (digit == 0 && num == 0 && negative) {
+              digits[i] = minusSegments;
+            negative = false;
+          }
+    
+          num /= base;
+        }
+        }
+      
+      if(dots != 0)
+      {
+        showDots(dots, digits);
+      }
+        
+        setSegments(digits, length, pos);
     }
 
-    bool isInterrupted = false;
-    
+    void showDots(uint8_t dots, uint8_t* digits)
+    {
+        for(int i = 0; i < 4; ++i)
+        {
+            digits[i] |= (dots & 0x80);
+            dots <<= 1;
+        }
+    }
+ 
   private:
-    void write(const byte reg, const byte data)
+    byte clkPin = 0;
+    byte dioPin = 0;
+    byte brightness = 8;
+    uint32_t delayInMicrosec = 1000;
+    int displayedValue = 0;
+
+    void start()
     {
-      digitalWrite(SSPIN, LOW);
-      SPI.transfer(EXP << 1);  // note this is write mode
-      SPI.transfer(reg);
-      SPI.transfer(data);
-      digitalWrite(SSPIN, HIGH);
+      pinMode(dioPin, OUTPUT);
+      delayMicroseconds(delayInMicrosec);
+    }
+
+    void stop()
+    {
+      pinMode(dioPin, OUTPUT);
+      delayMicroseconds(delayInMicrosec);
+      pinMode(clkPin, INPUT);
+      delayMicroseconds(delayInMicrosec);
+      pinMode(dioPin, INPUT);
+      delayMicroseconds(delayInMicrosec);
+    }
+
+    bool writeByte(byte b)
+    {
+      byte data = b;
+    
+      
+      for (byte i = 0; i < 8; i++)  // 8 Data Bits
+      {
+        
+        // CLK low
+        pinMode(clkPin, OUTPUT);
+        delayMicroseconds(delayInMicrosec);
+    
+      
+        if (data & 0x01) // Set data bit
+        {
+          pinMode(dioPin, INPUT);
+        }
+        else
+        {
+          pinMode(dioPin, OUTPUT);
+        }
+    
+        delayMicroseconds(delayInMicrosec);
+    
+        // CLK high
+        pinMode(clkPin, INPUT);
+        delayMicroseconds(delayInMicrosec);
+        data = data >> 1;
+      }
+    
+      // Wait for acknowledge
+      // CLK to zero
+      pinMode(clkPin, OUTPUT);
+      pinMode(dioPin, INPUT);
+      delayMicroseconds(delayInMicrosec);
+    
+      // CLK to high
+      pinMode(clkPin, INPUT);
+      delayMicroseconds(delayInMicrosec);
+      byte ack = digitalRead(dioPin);
+      if (ack == 0)
+      {
+        pinMode(dioPin, OUTPUT);
+      }
+    
+      delayMicroseconds(delayInMicrosec);
+      pinMode(clkPin, OUTPUT);
+      delayMicroseconds(delayInMicrosec);
+    
+      return ack;
+    }
+
+    void setSegments(const byte segments[], byte length, byte pos)
+    {
+      start();
+      writeByte(TM1637_I2C_COMM1); // Write COMM1
+      stop();
+    
+      start();
+      writeByte(TM1637_I2C_COMM2 + (pos & 0x03)); // Write COMM2 + first digit address
+      for (byte k = 0; k < length; k++) // Write the data bytes
+      { 
+        writeByte(segments[k]);
+      }
+    
+      stop();
+    
+      start();
+      writeByte(TM1637_I2C_COMM3 + (brightness & 0x0f)); // Write COMM3 + brightness
+      stop();
+    }
+
+    byte encodeDigit(byte digit)
+    {
+      return digitToSegment[digit & 0x0f];
     }
     
-    byte read(const byte reg)
-    {
-      digitalWrite(SSPIN, LOW);
-      SPI.transfer((EXP << 1) | 1);
-      SPI.transfer(reg);
-      byte data = SPI.transfer(0);
-      digitalWrite(SSPIN, HIGH);
-      return data;
-    }
 };
 
 #endif

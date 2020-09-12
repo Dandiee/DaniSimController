@@ -53,6 +53,8 @@ class Encoder
 
       return result;
     }
+
+  int value = 0;
     
   private:
     byte pinA = 0;
@@ -60,7 +62,7 @@ class Encoder
     byte id = 0;
     encoderCallback callback = nullptr;
     byte state = 0;
-    int value = 0;
+    
 };
 
 #endif

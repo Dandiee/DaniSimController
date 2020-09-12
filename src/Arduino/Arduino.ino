@@ -1,5 +1,6 @@
 #include "Expander.h"
 #include "Encoder.h"
+#include "Display.h"
 
 void onEncoderChanged(int8_t change, byte id, int value);
 Encoder encoders[] = 
@@ -9,6 +10,7 @@ Encoder encoders[] =
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander();
+Display display = Display(8, 9, 10);
 
 void setup()
 {
@@ -20,6 +22,8 @@ void setup()
 
 void loop()
 { 
+  display.showNumberDec(encoders[0].value, false, 4, 0);
+  
   uint16_t gpioState = expander.readGpioState();
   if (gpioState)
   {
