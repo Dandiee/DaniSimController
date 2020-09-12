@@ -1,5 +1,5 @@
-#ifndef SRC_ROTARYENCOVERMCP_H_
-#define SRC_ROTARYENCOVERMCP_H_
+#ifndef SRC_DANIENCODER_H_
+#define SRC_DANIENCODER_H_
 
 #define DIR_NONE 0x0
 #define DIR_CW 0x10
@@ -34,11 +34,11 @@ class Encoder
 
     byte process(byte gpioState) 
     {
-      byte pin1State = bitRead(gpioState, pinA);
-      byte pin2State = bitRead(gpioState, pinB);
+      byte pinAState = bitRead(gpioState, pinA);
+      byte pinBState = bitRead(gpioState, pinB);
       
-      byte pinstate = (pin1State << 1) | pin2State;
-      state = stateTable[state & 0b00001111][pinstate]; 
+      byte pinState = (pinAState << 1) | pinBState;
+      state = stateTable[state & 0b00001111][pinState]; 
       byte result = (state & 0b00110000);
 
       if (result)
@@ -63,4 +63,4 @@ class Encoder
     int value = 0;
 };
 
-#endif /* SRC_ROTARYENCOVERMCP_H_ */
+#endif
