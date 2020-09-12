@@ -36,12 +36,13 @@ const byte digitToSegment[] = {
 static const byte minusSegments = 0b01000000;
 
 const byte clearData[] = { 0, 0, 0, 0 };
+const uint32_t delayInMicrosec = 15;
 
 class Display
 {
   public:
-    Display(byte clkPin, byte dioPin, uint32_t delayInMicrosec) 
-      : clkPin(clkPin), dioPin(dioPin), delayInMicrosec(delayInMicrosec), displayedValue(displayedValue)
+    Display(byte clkPin, byte dioPin)
+      : clkPin(clkPin), dioPin(dioPin), displayedValue(displayedValue)
     {
       brightness = 8;
       
@@ -154,7 +155,6 @@ class Display
     byte clkPin = 0;
     byte dioPin = 0;
     byte brightness = 8;
-    uint32_t delayInMicrosec = 1000;
     int displayedValue = 0;
 
     void start()

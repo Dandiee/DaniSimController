@@ -10,10 +10,19 @@ Encoder encoders[] =
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander();
-Display display = Display(8, 9, 5);
 
-uint16_t interruptQueueA[512];
-uint16_t interruptQueueB[512];
+Display displays[] = 
+{
+  Display(8, 9),
+  Display(8, 10),
+  Display(8, 11),
+  Display(8, 12),
+  Display(8, 5),
+  Display(8, 4),
+};
+
+uint16_t interruptQueueA[128];
+uint16_t interruptQueueB[128];
 
 volatile bool isQueueAUnderWrite = true;
 
@@ -49,7 +58,12 @@ bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
 
 void loop()
 { 
-  display.showNumberDec(encoders[0].value, false, 4, 0);
+  displays[0].showNumberDec(encoders[0].value, false, 4, 0);
+  displays[1].showNumberDec(encoders[1].value, false, 4, 0);
+  displays[2].showNumberDec(encoders[0].value + encoders[1].value, false, 4, 0);
+  displays[3].showNumberDec(encoders[0].value - encoders[1].value, false, 4, 0);
+  displays[4].showNumberDec(encoders[0].value * encoders[1].value, false, 4, 0);
+  displays[5].showNumberDec(encoders[0].value + 1, false, 4, 0);
 
   if (isQueueAUnderWrite)
   {
