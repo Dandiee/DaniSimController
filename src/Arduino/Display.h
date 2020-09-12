@@ -83,9 +83,7 @@ class Display
     
     void showNumberBaseEx(int8_t base, uint16_t num, uint8_t dots, bool leading_zero,
                                         uint8_t length, uint8_t pos)
-    {
-      uint32_t from = millis();
-      
+    {     
         bool negative = false;
       if (base < 0) {
           base = -base;
@@ -101,14 +99,7 @@ class Display
           digits[i] = 0;
         digits[length-1] = encodeDigit(0);
       }
-      else {
-        //uint8_t i = length-1;
-        //if (negative) {
-        //  // Negative number, show the minus sign
-        //    digits[i] = minusSegments;
-        //  i--;
-        //}
-        
+      else {       
         for(int i = length-1; i >= 0; --i)
         {
             uint8_t digit = num % base;
@@ -133,13 +124,8 @@ class Display
         showDots(dots, digits);
       }
 
-        uint32_t to = millis();
-        setSegments(digits, length, pos);
-        uint32_t best = millis();
-
-  Serial.println("tahóbecsmárk");
-        Serial.println((to-from));
-        Serial.println((best-to));
+        
+      setSegments(digits, length, pos);
     }
 
     void showDots(uint8_t dots, uint8_t* digits)
@@ -157,16 +143,10 @@ class Display
     byte brightness = 8;
     int displayedValue = 0;
 
-    void start()
-    {
-      pinMode(dioPin, OUTPUT);
-      delayMicroseconds(delayInMicrosec);
-    }
 
     void stop()
     {
       pinMode(dioPin, OUTPUT);
-      delayMicroseconds(delayInMicrosec);
       pinMode(clkPin, INPUT);
       delayMicroseconds(delayInMicrosec);
       pinMode(dioPin, INPUT);
@@ -176,61 +156,33 @@ class Display
     bool writeByte(byte b)
     {
       byte data = b;
-    
-      
-      for (byte i = 0; i < 8; i++)  // 8 Data Bits
+      for (byte i = 0; i < 8; i++)
       {
-        
-        // CLK low
         pinMode(clkPin, OUTPUT);
-        delayMicroseconds(delayInMicrosec);
-    
-        if (data & 0x01) // Set data bit
-        {
-          pinMode(dioPin, INPUT);
-        }
-        else
-        {
-          pinMode(dioPin, OUTPUT);
-        }
-    
-        delayMicroseconds(delayInMicrosec);
-    
-        // CLK high
+        pinMode(dioPin, (data & 0x01 ? INPUT : OUTPUT));       
         pinMode(clkPin, INPUT);
         delayMicroseconds(delayInMicrosec);
         data = data >> 1;
       }
     
       // Wait for acknowledge
-      // CLK to zero
       pinMode(clkPin, OUTPUT);
       pinMode(dioPin, INPUT);
-      delayMicroseconds(delayInMicrosec);
-    
-      // CLK to high
       pinMode(clkPin, INPUT);
-      delayMicroseconds(delayInMicrosec);
       byte ack = digitalRead(dioPin);
-      if (ack == 0)
-      {
-        pinMode(dioPin, OUTPUT);
-      }
-    
-      delayMicroseconds(delayInMicrosec);
+      pinMode(dioPin, OUTPUT);
       pinMode(clkPin, OUTPUT);
-      delayMicroseconds(delayInMicrosec);
-    
+   
       return ack;
     }
 
     void setSegments(const byte segments[], byte length, byte pos)
     {
-      start();
+      pinMode(dioPin, OUTPUT);
       writeByte(TM1637_I2C_COMM1); // Write COMM1
       stop();
     
-      start();
+      pinMode(dioPin, OUTPUT);
       writeByte(TM1637_I2C_COMM2 + (pos & 0x03)); // Write COMM2 + first digit address
       for (byte k = 0; k < length; k++) // Write the data bytes
       { 
@@ -239,7 +191,7 @@ class Display
     
       stop();
     
-      start();
+      pinMode(dioPin, OUTPUT);
       writeByte(TM1637_I2C_COMM3 + (brightness & 0x0f)); // Write COMM3 + brightness
       stop();
     }

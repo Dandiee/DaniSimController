@@ -9,21 +9,43 @@ Encoder encoders[] =
   Encoder(6, 7, 2, onEncoderChanged)
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
-Expander expander = Expander();
+Expander expander = Expander(
+  6,                  // SS Pin
+  0b1111111111111111, // Pin direction
+  0b1111111111111111, // Pull-up
+  0b1111111111111111, // IO Polarities
+  0b1111111111111111, // Use interrupts
+  0b0000000000000000, // Interrupt control
+  0b0000000000000000 // Interrupt default value
+);
+volatile bool isExpanderInterrupted = false;
 
+Expander expander2 = Expander(
+  5,                  // SS Pin
+  0b1111111111111111, // Pin direction
+  0b1111111111111111, // Pull-up
+  0b1111111111111111, // IO Polarities
+  0b0000000000000000, // Use interrupts
+  0b0000000000000000, // Interrupt control
+  0b0000000000000000 // Interrupt default value
+);
+
+const byte commonDisplayClkPin = 3;
 Display displays[] = 
 {
-  Display(8, 9),
-  Display(8, 10),
-  Display(8, 11),
-  Display(8, 12),
-  Display(8, 5),
-  Display(8, 4),
+  Display(commonDisplayClkPin, 8),
+  Display(commonDisplayClkPin, 9),
+  Display(commonDisplayClkPin, 10),
+  Display(commonDisplayClkPin, 11),
+  Display(commonDisplayClkPin, 12),
+  Display(commonDisplayClkPin, 13),
 };
+byte numberOfDisplays = sizeof(displays)/sizeof(displays[0]);
+const byte panicButtonPin = 4;
 
 uint16_t interruptQueueA[128];
 uint16_t interruptQueueB[128];
-
+uint16_t expander2GpioValue = 0;
 volatile bool isQueueAUnderWrite = true;
 
 volatile byte interruptsCountA = 0;
@@ -38,7 +60,10 @@ void setup()
   expander.begin();
   Serial.println("kickin");
 
-  pinMode(13, INPUT_PULLUP);
+  expander2.begin();
+  Serial.println("kickin 2 - the expander strikes back");
+  
+  pinMode(panicButtonPin, INPUT_PULLUP);
 }
 
 bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
@@ -56,36 +81,57 @@ bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
   }  
 }
 
+void checkInterrupts()
+{
+  if (isExpanderInterrupted)
+  {
+    detachInterrupt(digitalPinToInterrupt(INTPIN));
+    
+      uint16_t nextInterrupt = expander.readAndReset();
+      for (int j = 0; j < numberOfEncoders; j++)
+      {
+        encoders[j].process(nextInterrupt);   
+      }
+    isExpanderInterrupted = false;
+    attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
+    
+  }
+}
+
 void loop()
 { 
-  displays[0].showNumberDec(encoders[0].value, false, 4, 0);
-  displays[1].showNumberDec(encoders[1].value, false, 4, 0);
-  displays[2].showNumberDec(encoders[0].value + encoders[1].value, false, 4, 0);
-  displays[3].showNumberDec(encoders[0].value - encoders[1].value, false, 4, 0);
-  displays[4].showNumberDec(encoders[0].value * encoders[1].value, false, 4, 0);
-  displays[5].showNumberDec(encoders[0].value + 1, false, 4, 0);
-
-  if (isQueueAUnderWrite)
+  for (byte i = 0; i < numberOfDisplays; i++)
   {
-    consumerInterruptQueue(interruptQueueB, interruptsCountB);   
-    interruptsCountB = 0;
-    isQueueAUnderWrite = false;
-  }
-  else
-  {
-    consumerInterruptQueue(interruptQueueA, interruptsCountA);
-    interruptsCountA = 0;
-    isQueueAUnderWrite = true;
+    displays[i].showNumberDec(encoders[0].value + i, false, 4, 0);
+    checkInterrupts();
   }
 
-  if (digitalRead(13) == LOW)
+  checkInterrupts();
+    
+
+  if (digitalRead(panicButtonPin) == LOW)
   {
     Serial.println("Debug pressed, please wait...");
     uint16_t gpioState = expander.readAndReset();
-    Serial.println(gpioState);
+    writeBinary(gpioState);
     delay(500);
     Serial.println("Okay, good to go");
   }
+
+  uint16_t exp2Io = expander2.readAndReset();
+  if (expander2GpioValue != exp2Io)
+  {
+    writeBinary(exp2Io);  
+    expander2GpioValue = exp2Io;
+  }
+}
+
+void writeBinary(uint16_t doubleByte){
+  for (byte i = 0; i < 16; i++)
+  {
+    Serial.print(bitRead(doubleByte, i));
+  }
+  Serial.println();
 }
 
 void onEncoderChanged(int8_t change, byte id, int value) 
@@ -100,12 +146,5 @@ void onEncoderChanged(int8_t change, byte id, int value)
 
 void onExpanderInterrupt()
 {
-  if (isQueueAUnderWrite)
-  {
-    interruptQueueA[interruptsCountA++] = expander.readAndReset();
-  }
-  else
-  {
-    interruptQueueB[interruptsCountB++] = expander.readAndReset();
-  }
+  isExpanderInterrupted = true;
 }

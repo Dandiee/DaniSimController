@@ -26,90 +26,104 @@ const byte GPIOB    = 0x13;
 const byte OLLATA   = 0x14;   // Output latch. Write to latch output.
 const byte OLLATB   = 0x15;
 
-const byte SSPIN    = 0x06;   
 const byte EXP      = 0x20;
 const byte INTPIN   = 0x07;
 
 class Expander
 {
   public:
-    Expander() { }
+    Expander(
+      byte ssPin, 
+      uint16_t pinDirections,
+      uint16_t pullUps,
+      uint16_t ioPolarities,
+      uint16_t useInterrupts,
+      uint16_t interruptControls,
+      uint16_t defaultInterruptValue) : 
+                ssPin(ssPin), 
+                pinDirections(pinDirections), 
+                pullUps(pullUps), 
+                ioPolarities(ioPolarities), 
+                useInterrupts(useInterrupts), 
+                interruptControls(interruptControls), 
+                defaultInterruptValue(defaultInterruptValue) { }
 
     void begin()
     {
       SPI.begin();
-      pinMode(SSPIN, OUTPUT);
-      write(SSPIN, HIGH);
+      pinMode(ssPin, OUTPUT);
+      write(ssPin, HIGH);
 
-      pinMode(INTPIN, INPUT_PULLUP);   
-      attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
+      if (useInterrupts)
+      {
+        pinMode(INTPIN, INPUT_PULLUP);   
+        attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
+      }
     
       write(IOCON,    0b01101000);
-                                      //                          : 0         1
-      write(IODIRA,   0b11111111); // Pin direction            : Output    Input
-      write(GPPUA,    0b11111111); // Pull-up resistor         : Disabled  Enabled
-      write(IOPOLA,   0b11111111); // IO polarity              : Normal    Inversed
-      write(GPINTENA, 0b11111111); // Interrupt                : Disabled  Enabled
-      write(INTCONA,  0b00000000); // Interrupt control        : OnChange  ChangeFrom:DEFVAL
-      write(DEFVALA,  0b00000000); // Default intertupt value  : Low       High
-      
-      write(IODIRB,   0b11111111); 
-      write(GPPUB,    0b00000000); 
-      write(GPINTENB, 0b00000000);
-      write(IOPOLB,   0b11111111);
-      write(INTCONB,  0b00000000);
-      
-      read(INTCAPA);
-      read(INTCAPB);
-    }
 
-    uint16_t readGpioState()
-    {
-      if (isInterrupted)
+      write(IODIRA,   pinDirections         & 0x00FF);  // Pin direction            : Output    Input
+      write(GPPUA,    pullUps               & 0x00FF);  // Pull-up resistor         : Disabled  Enabled
+      write(IOPOLA,   ioPolarities          & 0x00FF);  // IO polarity              : Normal    Inversed
+      write(GPINTENA, useInterrupts         & 0x00FF);  // Interrupt                : Disabled  Enabled
+      write(INTCONA,  interruptControls     & 0x00FF);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
+      write(DEFVALA,  defaultInterruptValue & 0x00FF);  // Default intertupt value  : Low       High
+
+      write(IODIRB,   pinDirections         & 0xFF00);  // Pin direction            : Output    Input
+      write(GPPUB,    pullUps               & 0xFF00);  // Pull-up resistor         : Disabled  Enabled
+      write(IOPOLB,   ioPolarities          & 0xFF00);  // IO polarity              : Normal    Inversed
+      write(GPINTENB, useInterrupts         & 0xFF00);  // Interrupt                : Disabled  Enabled
+      write(INTCONB,  interruptControls     & 0xFF00);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
+      write(DEFVALB,  defaultInterruptValue & 0xFF00);  // Default intertupt value  : Low       Hig 
+
+      if (useInterrupts)
       {
-        detachInterrupt(digitalPinToInterrupt(INTPIN));
-        byte portA = read(GPIOA);
-        byte portB = read(GPIOB);
-
-        uint16_t result = ((portB << 8) | portA);
-           
-        attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
-        isInterrupted = false;
-
-        return result;
+        read(INTCAPA);
+        read(INTCAPB);
       }
-
-      return 0;
     }
 
     uint16_t readAndReset()
     {
+        // TODO: we should get both bytes mostly
         byte portA = read(GPIOA);
         byte portB = read(GPIOB);
-
         return ((portB << 8) | portA);
     }
-    
 
-    bool isInterrupted = false;
-    
+  void letItGo()
+  {
+    digitalWrite(ssPin, HIGH);
+  }
+        
   private:
+
+    byte ssPin = 0;
+    bool useInterrupt = false;
+
+    uint16_t pinDirections          = 0b0000000000000000;
+    uint16_t pullUps                = 0b0000000000000000;
+    uint16_t ioPolarities           = 0b0000000000000000;
+    uint16_t useInterrupts          = 0b0000000000000000;
+    uint16_t interruptControls      = 0b0000000000000000;
+    uint16_t defaultInterruptValue  = 0b0000000000000000;
+  
     void write(const byte reg, const byte data)
     {
-      digitalWrite(SSPIN, LOW);
+      digitalWrite(ssPin, LOW);
       SPI.transfer(EXP << 1);  // note this is write mode
       SPI.transfer(reg);
       SPI.transfer(data);
-      digitalWrite(SSPIN, HIGH);
+      digitalWrite(ssPin, HIGH);
     }
     
     byte read(const byte reg)
     {
-      digitalWrite(SSPIN, LOW);
+      digitalWrite(ssPin, LOW);
       SPI.transfer((EXP << 1) | 1);
       SPI.transfer(reg);
       byte data = SPI.transfer(0);
-      digitalWrite(SSPIN, HIGH);
+      digitalWrite(ssPin, HIGH);
       return data;
     }
 };
