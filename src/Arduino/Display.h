@@ -50,21 +50,13 @@ class Display
       
       digitalWrite(clkPin, LOW);
       digitalWrite(dioPin, LOW);
-    }
 
-    void setDelay(byte delayInMs)
-    {
-      
-    }
-
-    void setBrightness(byte value, bool isOn)
-    {
-      brightness = (value & 0x7) | (isOn ? 0x08 : 0x00);
+      clear();
     }
 
     void clear()
     {
-      // setSegments(clearData);
+      setSegments(clearData, 4, 0);
     }
 
     void showNumberDec(int num, bool leading_zero, uint8_t length, uint8_t pos)
@@ -91,6 +83,8 @@ class Display
     void showNumberBaseEx(int8_t base, uint16_t num, uint8_t dots, bool leading_zero,
                                         uint8_t length, uint8_t pos)
     {
+      uint32_t from = millis();
+      
         bool negative = false;
       if (base < 0) {
           base = -base;
@@ -137,8 +131,14 @@ class Display
       {
         showDots(dots, digits);
       }
-        
+
+        uint32_t to = millis();
         setSegments(digits, length, pos);
+        uint32_t best = millis();
+
+  Serial.println("tahóbecsmárk");
+        Serial.println((to-from));
+        Serial.println((best-to));
     }
 
     void showDots(uint8_t dots, uint8_t* digits)
@@ -185,7 +185,6 @@ class Display
         pinMode(clkPin, OUTPUT);
         delayMicroseconds(delayInMicrosec);
     
-      
         if (data & 0x01) // Set data bit
         {
           pinMode(dioPin, INPUT);

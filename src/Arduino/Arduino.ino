@@ -10,9 +10,15 @@ Encoder encoders[] =
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander();
-Display display = Display(8, 9, 10);
-uint16_t interruptQueue[64];
-byte interruptsCount = 0;
+Display display = Display(8, 9, 5);
+
+uint16_t interruptQueueA[512];
+uint16_t interruptQueueB[512];
+
+volatile bool isQueueAUnderWrite = true;
+
+volatile byte interruptsCountA = 0;
+volatile byte interruptsCountB = 0;
 
 bool isWriting = false;
 
@@ -22,47 +28,50 @@ void setup()
   while(!Serial);
   expander.begin();
   Serial.println("kickin");
+
+  pinMode(13, INPUT_PULLUP);
+}
+
+bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
+{
+  if (interruptsCount)
+  {     
+    for (byte i = 0; i < interruptsCount; i++)
+    {
+      uint16_t nextInterrupt = interruptQueue[i];
+      for (int j = 0; j < numberOfEncoders; j++)
+      {
+        encoders[j].process(nextInterrupt);   
+      }
+    }
+  }  
 }
 
 void loop()
 { 
-  //display.showNumberDec(encoders[0].value, false, 4, 0);
+  display.showNumberDec(encoders[0].value, false, 4, 0);
 
-  if (interruptsCount)
+  if (isQueueAUnderWrite)
   {
-    
+    consumerInterruptQueue(interruptQueueB, interruptsCountB);   
+    interruptsCountB = 0;
+    isQueueAUnderWrite = false;
+  }
+  else
+  {
+    consumerInterruptQueue(interruptQueueA, interruptsCountA);
+    interruptsCountA = 0;
+    isQueueAUnderWrite = true;
   }
 
-  if (!isWriting)
+  if (digitalRead(13) == LOW)
   {
-    if(interruptsCount)
-    {
-      if(interruptsCount > 1)
-      {
-        Serial.println(interruptsCount);
-      }
-      for (int i = 0; i < interruptsCount; i++)
-      {
-        uint16_t nextEvent = interruptQueue[i];
-        
-        for (int j = 0; j < numberOfEncoders; j++)
-        {
-          encoders[j].process(nextEvent);   
-        }
-
-        interruptsCount = 0;
-      }
-    }
+    Serial.println("Debug pressed, please wait...");
+    uint16_t gpioState = expander.readAndReset();
+    Serial.println(gpioState);
+    delay(500);
+    Serial.println("Okay, good to go");
   }
-  
-  /*uint16_t gpioState = expander.readGpioState();
-  if (gpioState)
-  {
-    for (byte i = 0; i < numberOfEncoders; i++)
-    {
-      encoders[i].process(gpioState);
-    }
-  }*/
 }
 
 void onEncoderChanged(int8_t change, byte id, int value) 
@@ -75,14 +84,14 @@ void onEncoderChanged(int8_t change, byte id, int value)
   Serial.println(")");
 }
 
-
-
 void onExpanderInterrupt()
 {
-  isWriting = true;
-  //detachInterrupt(digitalPinToInterrupt(INTPIN));
-  interruptQueue[interruptsCount] = expander.readAndReset();
-  interruptsCount++;
-  //attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
-  isWriting = false;
+  if (isQueueAUnderWrite)
+  {
+    interruptQueueA[interruptsCountA++] = expander.readAndReset();
+  }
+  else
+  {
+    interruptQueueB[interruptsCountB++] = expander.readAndReset();
+  }
 }
