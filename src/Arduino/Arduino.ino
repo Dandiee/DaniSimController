@@ -20,6 +20,8 @@ Expander expander = Expander(
 );
 volatile bool isExpanderInterrupted = false;
 
+int potentiometers[] = {0};
+
 Expander expander2 = Expander(
   5,                  // SS Pin
   0b1111111111111111, // Pin direction
@@ -50,6 +52,8 @@ volatile bool isQueueAUnderWrite = true;
 
 volatile byte interruptsCountA = 0;
 volatile byte interruptsCountB = 0;
+
+
 
 bool isWriting = false;
 
@@ -107,7 +111,18 @@ void loop()
   }
 
   checkInterrupts();
-    
+
+
+  for (byte i = 0; i < 1; i++)
+  {
+    int potentiometerValue = analogRead(A5);
+    if (potentiometerValue != potentiometers[i])
+    {
+      // Serial.println(potentiometerValue);
+      potentiometers[i] = potentiometerValue;
+    }
+  }
+  
 
   if (digitalRead(panicButtonPin) == LOW)
   {
