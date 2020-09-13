@@ -1,8 +1,14 @@
+#include <HID-Project.h>
 #include "Expander.h"
 #include "Encoder.h"
 #include "Display.h"
+#include "SimController.h"
 
 void onEncoderChanged(int8_t change, byte id, int value);
+void onSimStateChanged(byte key, int value);
+
+SimController simController = SimController(onSimStateChanged);
+
 Encoder encoders[] = 
 { 
   Encoder(4, 5, 1, onEncoderChanged),
@@ -68,6 +74,8 @@ void setup()
   Serial.println("kickin 2 - the expander strikes back");
   
   pinMode(panicButtonPin, INPUT_PULLUP);
+
+  Gamepad.begin();
 }
 
 bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
@@ -104,25 +112,13 @@ void checkInterrupts()
 
 void loop()
 { 
-  for (byte i = 0; i < numberOfDisplays; i++)
+  /*for (byte i = 0; i < numberOfDisplays - 1; i++)
   {
     displays[i].showNumberDec(encoders[0].value + i, false, 4, 0);
     checkInterrupts();
-  }
+  }*/
 
   checkInterrupts();
-
-
-  for (byte i = 0; i < 1; i++)
-  {
-    int potentiometerValue = analogRead(A5);
-    if (potentiometerValue != potentiometers[i])
-    {
-      // Serial.println(potentiometerValue);
-      potentiometers[i] = potentiometerValue;
-    }
-  }
-  
 
   if (digitalRead(panicButtonPin) == LOW)
   {
@@ -139,6 +135,16 @@ void loop()
     writeBinary(exp2Io);  
     expander2GpioValue = exp2Io;
   }
+
+  simController.readSerial();
+
+  sendGamepadReport();
+}
+
+void sendGamepadReport()
+{
+   Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
+   Gamepad.write();
 }
 
 void writeBinary(uint16_t doubleByte){
@@ -157,6 +163,11 @@ void onEncoderChanged(int8_t change, byte id, int value)
   Serial.print(" (");
   Serial.print(value);
   Serial.println(")");
+}
+
+void onSimStateChanged(byte key, int value)
+{
+  displays[0].showNumberDec(value, false, 4, 0);
 }
 
 void onExpanderInterrupt()

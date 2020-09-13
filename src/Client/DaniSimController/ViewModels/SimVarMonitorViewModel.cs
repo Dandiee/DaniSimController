@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using DaniSimController.Mvvm;
@@ -16,6 +17,13 @@ namespace DaniSimController.ViewModels
         public ICommand RemoveSimVarCommand { get; }
 
         public ObservableCollection<SelectedSimVarViewModel> SimVars { get; }
+
+        private SelectedSimVarViewModel _selectedSimVar;
+        public SelectedSimVarViewModel SelectedSimVar
+        {
+            get => _selectedSimVar;
+            set => SetProperty(ref _selectedSimVar, value);
+        }
 
         public SimVarMonitorViewModel(IEventAggregator eventAggregator)
         {
@@ -37,11 +45,14 @@ namespace DaniSimController.ViewModels
         {
             if (_simVars.TryGetValue(obj.RequestId, out var value))
             {
-                var newValue = obj.Value.ToString();
-                if (value.Value != newValue)
+                var newValue = (double) obj.Value;
+                var newInteger = (int) (newValue * value.Factor);
+
+                if (value.IntValue != newInteger)
                 {
-                    value.Value = obj.Value.ToString();
-                    var line = $"|{obj.RequestId}:{value.Value.ToString()}";
+                    value.Value = newValue.ToString(CultureInfo.InvariantCulture);
+                    value.IntValue = newInteger;
+                    var line = $"|{obj.RequestId}:{newInteger}";
                     _eventAggregator.GetEvent<WriteToSerialEvent>().Publish(line);
                     Debug.WriteLine(line);
                 }
@@ -65,6 +76,27 @@ namespace DaniSimController.ViewModels
     public sealed class SelectedSimVarViewModel : BindableBase
     {
         public SimVarRequest Request { get; }
+
+        private int _intValue;
+        public int IntValue
+        {
+            get => _intValue;
+            set => SetProperty(ref _intValue, value);
+        }
+
+        private float _factor = 1;
+        public float Factor
+        {
+            get => _factor;
+            set
+            {
+                if (SetProperty(ref _factor, value))
+                {
+                    IntValue = -1;
+                }
+
+            }
+        }
 
         private string _value;
         public string Value

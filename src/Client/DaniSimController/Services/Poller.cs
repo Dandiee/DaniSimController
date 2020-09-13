@@ -20,7 +20,11 @@ namespace DaniSimController.Services
 
         public Poller()
         {
-            _timer = new Timer();
+            _timer = new Timer
+            {
+                Interval = 1
+            };
+            
             _timer.Elapsed += (_, args) => Tick?.Invoke(this, args);
         }
 

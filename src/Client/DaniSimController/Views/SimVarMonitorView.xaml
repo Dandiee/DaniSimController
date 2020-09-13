@@ -5,20 +5,58 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <ListView ItemsSource="{Binding SimVars}" MouseDoubleClick="SelectedSimVarListDoubleClicked">
-        <ListView.View>
-            <GridView>
-                <GridViewColumn Header="#" Width="30" DisplayMemberBinding="{Binding Request.RequestId}" />
-                <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Request.SimVar.Name}" />
-                <GridViewColumn Header="Type" Width="100" DisplayMemberBinding="{Binding Request.SimVar.Type.Name}" />
-                <GridViewColumn Header="Value" Width="150">
-                    <GridViewColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Value}" FontWeight="Bold" />
-                        </DataTemplate>
-                    </GridViewColumn.CellTemplate>
-                </GridViewColumn>
-            </GridView>
-        </ListView.View>
-    </ListView>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ListView ItemsSource="{Binding SimVars}" MouseDoubleClick="SelectedSimVarListDoubleClicked" SelectedItem="{Binding SelectedSimVar, Mode=TwoWay}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="#" Width="30" DisplayMemberBinding="{Binding Request.RequestId}" />
+                    <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Request.SimVar.Name}" />
+                    <GridViewColumn Header="Type" Width="100" DisplayMemberBinding="{Binding Request.SimVar.Type.Name}" />
+                    <GridViewColumn Header="Value" Width="150">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Value}" FontWeight="Bold" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Factor" Width="150">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Factor}" FontWeight="Bold" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Integer" Width="150">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding IntValue}" FontWeight="Bold" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Border Grid.Row="1" >
+            <Grid Margin="10" DataContext="{Binding SelectedSimVar}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="250"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Factor"/>
+                <TextBox Grid.Column="1" Text="{Binding Factor, Mode=TwoWay}"/>
+
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
