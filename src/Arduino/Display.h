@@ -36,7 +36,7 @@ const byte digitToSegment[] = {
 static const byte minusSegments = 0b01000000;
 
 const byte clearData[] = { 0, 0, 0, 0 };
-const uint32_t delayInMicrosec = 15;
+const uint32_t delayInMicrosec = 100;
 
 class Display
 {

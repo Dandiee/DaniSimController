@@ -11,10 +11,10 @@ SimController simController = SimController(onSimStateChanged);
 
 Encoder encoders[] = 
 { 
-  Encoder(7, 6, 4, onEncoderChanged),
-  //Encoder(2, 3, 3, onEncoderChanged),
-  //Encoder(4, 5, 2, onEncoderChanged),
-  //Encoder(6, 7, 1, onEncoderChanged),  
+  Encoder(0, 1, 1, onEncoderChanged),
+  Encoder(2, 3, 2, onEncoderChanged),
+  Encoder(4, 5, 3, onEncoderChanged),
+  Encoder(6, 7, 4, onEncoderChanged)
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander(
@@ -22,7 +22,7 @@ Expander expander = Expander(
   0b1111111111111111, // Pin direction
   0b1111111111111111, // Pull-up
   0b1111111111111111, // IO Polarities
-  0b0000000011000000, // Use interrupts
+  0b1111111111111111, // Use interrupts
   0b0000000000000000, // Interrupt control
   0b0000000000000000  // Interrupt default value
 );
@@ -32,10 +32,10 @@ int potentiometers[] = {0};
 
 Expander expander2 = Expander(
   5,                  // SS Pin
-  0b1111111111111111, // Pin direction
-  0b1111111111111111, // Pull-up
-  0b1111111111111111, // IO Polarities
-  0b0000000011000000, // Use interrupts
+  0b0000000000000000, // Pin direction
+  0b0000000000000000, // Pull-up
+  0b0000000000000000, // IO Polarities
+  0b0000000000000000, // Use interrupts
   0b0000000000000000, // Interrupt control
   0b0000000000000000  // Interrupt default value
 );
@@ -49,7 +49,7 @@ Display displays[] =
   Display(commonDisplayClkPin, 9),
   Display(commonDisplayClkPin, 10),
   Display(commonDisplayClkPin, 11),
-  //Display(commonDisplayClkPin, 12),
+  Display(commonDisplayClkPin, 12),
   Display(commonDisplayClkPin, 13),
 };
 byte numberOfDisplays = sizeof(displays)/sizeof(displays[0]);
@@ -77,7 +77,7 @@ void setup()
   
   //pinMode(panicButtonPin, INPUT_PULLUP);
 
-  Gamepad.begin();
+  //Gamepad.begin();
 }
 
 void checkInterrupts()
@@ -89,41 +89,23 @@ void checkInterrupts()
       uint16_t nextInterrupt = expander.readAndReset();
       for (int j = 0; j < numberOfEncoders; j++)
       {
-        Serial.print("PINA:");
-        Serial.print(encoders[j].pinA);
-        Serial.print(" PINB:");
-        Serial.print(encoders[j].pinB);
-        Serial.print(" GPIO:");
-        writeBinary(nextInterrupt);
-        Serial.print(" VALUEA:");
-        Serial.print(bitRead(nextInterrupt, encoders[j].pinA));
-        Serial.print(" VALUEB:");
-        Serial.print(bitRead(nextInterrupt, encoders[j].pinB));
-        Serial.println();
-        
-        
         encoders[j].process(nextInterrupt);   
       }
     
       isExpanderInterrupted = false;
       attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
-    
   }
 }
 
 void loop()
 { 
-  /*
-  if (c % 1000 == 0)
+  for (byte i = 0; i < 4; i++)
   {
-    for (byte i = 0; i < numberOfDisplays - 1; i++)
-    {
-      displays[i].showNumberDec(c/1000, false, 4, 0);
-      checkInterrupts();
-    }
+    displays[i].showNumberDec(encoders[i].value, false, 4, 0);
+    checkInterrupts();
+    displays[i + 4].showNumberDec(encoders[i].value + 1, false, 4, 0);
+    checkInterrupts();
   }
-  */
-
 
   
 
