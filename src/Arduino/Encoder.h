@@ -55,10 +55,10 @@ class Encoder
     }
 
   int value = 0;
-    
-  private:
     byte pinA = 0;
     byte pinB = 0;
+  private:
+    
     byte id = 0;
     encoderCallback callback = nullptr;
     byte state = 0;

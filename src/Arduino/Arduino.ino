@@ -11,8 +11,10 @@ SimController simController = SimController(onSimStateChanged);
 
 Encoder encoders[] = 
 { 
-  Encoder(4, 5, 1, onEncoderChanged),
-  Encoder(6, 7, 2, onEncoderChanged)
+  Encoder(7, 6, 4, onEncoderChanged),
+  //Encoder(2, 3, 3, onEncoderChanged),
+  //Encoder(4, 5, 2, onEncoderChanged),
+  //Encoder(6, 7, 1, onEncoderChanged),  
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander(
@@ -20,9 +22,9 @@ Expander expander = Expander(
   0b1111111111111111, // Pin direction
   0b1111111111111111, // Pull-up
   0b1111111111111111, // IO Polarities
-  0b1111111111111111, // Use interrupts
+  0b0000000011000000, // Use interrupts
   0b0000000000000000, // Interrupt control
-  0b0000000000000000 // Interrupt default value
+  0b0000000000000000  // Interrupt default value
 );
 volatile bool isExpanderInterrupted = false;
 
@@ -33,26 +35,26 @@ Expander expander2 = Expander(
   0b1111111111111111, // Pin direction
   0b1111111111111111, // Pull-up
   0b1111111111111111, // IO Polarities
-  0b0000000000000000, // Use interrupts
+  0b0000000011000000, // Use interrupts
   0b0000000000000000, // Interrupt control
-  0b0000000000000000 // Interrupt default value
+  0b0000000000000000  // Interrupt default value
 );
 
-const byte commonDisplayClkPin = 3;
+const byte commonDisplayClkPin = 2;
 Display displays[] = 
 {
+  Display(commonDisplayClkPin, 3),
+  Display(commonDisplayClkPin, 4),
   Display(commonDisplayClkPin, 8),
   Display(commonDisplayClkPin, 9),
   Display(commonDisplayClkPin, 10),
   Display(commonDisplayClkPin, 11),
-  Display(commonDisplayClkPin, 12),
+  //Display(commonDisplayClkPin, 12),
   Display(commonDisplayClkPin, 13),
 };
 byte numberOfDisplays = sizeof(displays)/sizeof(displays[0]);
 const byte panicButtonPin = 4;
 
-uint16_t interruptQueueA[128];
-uint16_t interruptQueueB[128];
 uint16_t expander2GpioValue = 0;
 volatile bool isQueueAUnderWrite = true;
 
@@ -73,52 +75,61 @@ void setup()
   expander2.begin();
   Serial.println("kickin 2 - the expander strikes back");
   
-  pinMode(panicButtonPin, INPUT_PULLUP);
+  //pinMode(panicButtonPin, INPUT_PULLUP);
 
   Gamepad.begin();
-}
-
-bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
-{
-  if (interruptsCount)
-  {     
-    for (byte i = 0; i < interruptsCount; i++)
-    {
-      uint16_t nextInterrupt = interruptQueue[i];
-      for (int j = 0; j < numberOfEncoders; j++)
-      {
-        encoders[j].process(nextInterrupt);   
-      }
-    }
-  }  
 }
 
 void checkInterrupts()
 {
   if (isExpanderInterrupted)
   {
-    detachInterrupt(digitalPinToInterrupt(INTPIN));
+      detachInterrupt(digitalPinToInterrupt(INTPIN));
     
       uint16_t nextInterrupt = expander.readAndReset();
       for (int j = 0; j < numberOfEncoders; j++)
       {
+        Serial.print("PINA:");
+        Serial.print(encoders[j].pinA);
+        Serial.print(" PINB:");
+        Serial.print(encoders[j].pinB);
+        Serial.print(" GPIO:");
+        writeBinary(nextInterrupt);
+        Serial.print(" VALUEA:");
+        Serial.print(bitRead(nextInterrupt, encoders[j].pinA));
+        Serial.print(" VALUEB:");
+        Serial.print(bitRead(nextInterrupt, encoders[j].pinB));
+        Serial.println();
+        
+        
         encoders[j].process(nextInterrupt);   
       }
-    isExpanderInterrupted = false;
-    attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
+    
+      isExpanderInterrupted = false;
+      attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
     
   }
 }
 
 void loop()
 { 
-  /*for (byte i = 0; i < numberOfDisplays - 1; i++)
+  /*
+  if (c % 1000 == 0)
   {
-    displays[i].showNumberDec(encoders[0].value + i, false, 4, 0);
-    checkInterrupts();
-  }*/
+    for (byte i = 0; i < numberOfDisplays - 1; i++)
+    {
+      displays[i].showNumberDec(c/1000, false, 4, 0);
+      checkInterrupts();
+    }
+  }
+  */
+
+
+  
 
   checkInterrupts();
+
+  /*checkInterrupts();
 
   if (digitalRead(panicButtonPin) == LOW)
   {
@@ -127,23 +138,24 @@ void loop()
     writeBinary(gpioState);
     delay(500);
     Serial.println("Okay, good to go");
-  }
+  }*/
 
-  uint16_t exp2Io = expander2.readAndReset();
+  /*uint16_t exp2Io = expander2.readAndReset();
   if (expander2GpioValue != exp2Io)
   {
     writeBinary(exp2Io);  
     expander2GpioValue = exp2Io;
-  }
+  }*/
 
-  simController.readSerial();
+  //simController.readSerial();
 
-  sendGamepadReport();
+  //sendGamepadReport();
 }
 
 void sendGamepadReport()
 {
-   Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
+   //Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
+   Gamepad.xAxis( 100);
    Gamepad.write();
 }
 
@@ -152,7 +164,7 @@ void writeBinary(uint16_t doubleByte){
   {
     Serial.print(bitRead(doubleByte, i));
   }
-  Serial.println();
+  //Serial.println();
 }
 
 void onEncoderChanged(int8_t change, byte id, int value) 
