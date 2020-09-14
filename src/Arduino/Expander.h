@@ -14,7 +14,8 @@ const byte DEFVALA  = 0x06;   // Default comparison for interrupt on change (int
 const byte DEFVALB  = 0x07;
 const byte INTCONA  = 0x08;   // Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
 const byte INTCONB  = 0x09;
-const byte IOCON    = 0x0A;   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
+const byte IOCONA    = 0x0A;   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
+const byte IOCONB    = 0x0B;   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
 const byte GPPUA    = 0x0C;   // Pull-up resistor (0 = disabled, 1 = enabled)
 const byte GPPUB    = 0x0D;
 const byte INFTFA   = 0x0E;   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
@@ -51,44 +52,92 @@ class Expander
     void begin()
     {
       SPI.begin();
+      
       pinMode(ssPin, OUTPUT);
       write(ssPin, HIGH);
 
-      if (useInterrupts)
+      if (false && useInterrupts)
       {
         pinMode(INTPIN, INPUT_PULLUP);   
         attachInterrupt(digitalPinToInterrupt(INTPIN), ::onExpanderInterrupt, FALLING);
       }
     
-      write(IOCON,    0b01101000);
+      //write(IOCON,    0b01101000);
+      //write(IOCON,    0b00001000);
 
-      write(IODIRA,   pinDirections         & 0x00FF);  // Pin direction            : Output    Input
-      write(GPPUA,    pullUps               & 0x00FF);  // Pull-up resistor         : Disabled  Enabled
-      write(IOPOLA,   ioPolarities          & 0x00FF);  // IO polarity              : Normal    Inversed
-      write(GPINTENA, useInterrupts         & 0x00FF);  // Interrupt                : Disabled  Enabled
-      write(INTCONA,  interruptControls     & 0x00FF);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
-      write(DEFVALA,  defaultInterruptValue & 0x00FF);  // Default intertupt value  : Low       High
+  // bank/mirror/seqop/disslw/haen/odr/intpol/notimp
 
-      write(IODIRB,   pinDirections         & 0xFF00);  // Pin direction            : Output    Input
-      write(GPPUB,    pullUps               & 0xFF00);  // Pull-up resistor         : Disabled  Enabled
-      write(IOPOLB,   ioPolarities          & 0xFF00);  // IO polarity              : Normal    Inversed
-      write(GPINTENB, useInterrupts         & 0xFF00);  // Interrupt                : Disabled  Enabled
-      write(INTCONB,  interruptControls     & 0xFF00);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
-      write(DEFVALB,  defaultInterruptValue & 0xFF00);  // Default intertupt value  : Low       Hig 
+      byte BANK = 0;    // Controls how the registers are addressed
+                        //        0 = The registers are in the same bank (addresses are sequential).
+                        //        1 = The registers associated with each port are separated into different banks.
 
-      if (useInterrupts)
+      byte MIRROR = 1;  // INT Pins Mirror bit
+                        //        0 = The INT pins are not connected. INTA is associated with PORTA and INTB is associated with 
+                        //        1 = The INT pins are internally connected
+
+      byte SEQOP = 1;   // Sequential Operation mode bit
+                        //        0 = Sequential operation enabled, address pointer increments.
+                        //        1 = Sequential operation disabled, address pointer does not increment.
+
+      byte DISSLW = 0;  // Slew Rate control bit for SDA output
+                        //        0 = Slew rate enabled
+                        //        1 = Slew rate disabled
+
+      byte HAEN = 0;    //  Hardware Address Enable bit (MCP23S17 only)
+                        //        0 = Disables the MCP23S17 address pins
+                        //        1 = Enables the MCP23S17 address pins
+
+      byte ODR = 0;     // Configures the INT pin as an open-drain output
+                        //        0 = Active driver output (INTPOL bit sets the polarity.)
+                        //        1 = Open-drain output (overrides the INTPOL bit.)
+
+      byte INPOT = 0;   // This bit sets the polarity of the INT output pin
+                        //        0 = Active-low
+                        //        1 = Active-high
+
+      uint8_t ICON_SETTINGS = 0;
+      
+      bitWrite(ICON_SETTINGS, 0, 0);
+      bitWrite(ICON_SETTINGS, 1, INPOT);  //
+      bitWrite(ICON_SETTINGS, 2, ODR);    //
+      bitWrite(ICON_SETTINGS, 3, HAEN);
+      bitWrite(ICON_SETTINGS, 4, DISSLW);
+      bitWrite(ICON_SETTINGS, 5, SEQOP);
+      bitWrite(ICON_SETTINGS, 6, MIRROR); // 
+      bitWrite(ICON_SETTINGS, 7, BANK);
+
+      write(IOCONA, ICON_SETTINGS);
+      write(IOCONB, ICON_SETTINGS);
+
+      write(IODIRA,   0xff); //inDirections          & 0x00FF);  // Pin direction            : Output    Input
+      write(GPPUA,    0xff); //pullUps               & 0x00FF);  // Pull-up resistor         : Disabled  Enabled
+      write(IOPOLA,   0xff); //ioPolarities          & 0x00FF);  // IO polarity              : Normal    Inversed
+      write(GPINTENA, 0x00); //useInterrupts         & 0x00FF);  // Interrupt                : Disabled  Enabled
+      write(INTCONA,  0x00); //interruptControls     & 0x00FF);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
+      write(DEFVALA,  0x00); //defaultInterruptValue & 0x00FF);  // Default intertupt value  : Low       High
+
+      write(IODIRB,   0xff);//(pinDirections         & 0xFF00) >> 8);  // Pin direction            : Output    Input
+      write(GPPUB,    0xff);//(pullUps               & 0xFF00) >> 8);  // Pull-up resistor         : Disabled  Enabled
+      write(IOPOLB,   0xff);//(ioPolarities          & 0xFF00) >> 8);  // IO polarity              : Normal    Inversed
+      write(GPINTENB, 0x00);//(useInterrupts         & 0xFF00) >> 8);  // Interrupt                : Disabled  Enabled
+      write(INTCONB,  0x00);//(interruptControls     & 0xFF00) >> 8);  // Interrupt control        : OnChange  ChangeFrom:DEFVAL
+      write(DEFVALB,  0x00);//(defaultInterruptValue & 0xFF00) >> 8);  // Default intertupt value  : Low       Hig 
+
+      if (false && useInterrupts)
       {
         read(INTCAPA);
         read(INTCAPB);
       }
     }
 
-    uint16_t readAndReset()
+    uint16_t readA()
     {
-        // TODO: we should get both bytes mostly
-        byte portA = read(GPIOA);
-        byte portB = read(GPIOB);
-        return ((portB << 8) | portA);
+        return read(GPIOB);       
+    }
+
+    uint16_t readB()
+    {
+        return read(GPIOB);
     }
 
   void letItGo()

@@ -5,8 +5,9 @@
 void onEncoderChanged(int8_t change, byte id, int value);
 Encoder encoders[] = 
 { 
-  Encoder(4, 5, 1, onEncoderChanged),
-  Encoder(6, 7, 2, onEncoderChanged)
+  //Encoder(4, 5, 1, onEncoderChanged),
+  Encoder(8, 9, 2, onEncoderChanged),
+  //Encoder(6, 7, 5, onEncoderChanged)
 };
 byte numberOfEncoders = sizeof(encoders)/sizeof(encoders[0]);
 Expander expander = Expander(
@@ -20,7 +21,7 @@ Expander expander = Expander(
 );
 volatile bool isExpanderInterrupted = false;
 
-Expander expander2 = Expander(
+/*Expander expander2 = Expander(
   5,                  // SS Pin
   0b1111111111111111, // Pin direction
   0b1111111111111111, // Pull-up
@@ -29,7 +30,7 @@ Expander expander2 = Expander(
   0b0000000000000000, // Interrupt control
   0b0000000000000000 // Interrupt default value
 );
-
+*/
 const byte commonDisplayClkPin = 3;
 Display displays[] = 
 {
@@ -43,8 +44,8 @@ Display displays[] =
 byte numberOfDisplays = sizeof(displays)/sizeof(displays[0]);
 const byte panicButtonPin = 4;
 
-uint16_t interruptQueueA[128];
-uint16_t interruptQueueB[128];
+//uint16_t interruptQueueA[128];
+//uint16_t interruptQueueB[128];
 uint16_t expander2GpioValue = 0;
 volatile bool isQueueAUnderWrite = true;
 
@@ -57,13 +58,16 @@ void setup()
 {
   Serial.begin(9600);
   while(!Serial);
+
+  
+  
   expander.begin();
   Serial.println("kickin");
 
-  expander2.begin();
+  //expander2.begin();
   Serial.println("kickin 2 - the expander strikes back");
   
-  pinMode(panicButtonPin, INPUT_PULLUP);
+  //pinMode(panicButtonPin, INPUT_PULLUP);
 }
 
 bool consumerInterruptQueue(uint16_t interruptQueue[], byte interruptsCount)
@@ -85,30 +89,44 @@ void checkInterrupts()
 {
   if (isExpanderInterrupted)
   {
-    detachInterrupt(digitalPinToInterrupt(INTPIN));
+    //detachInterrupt(digitalPinToInterrupt(INTPIN));
+
+    //byte a = expander.readA();
+    byte b = expander.readB();
+      
     
-      uint16_t nextInterrupt = expander.readAndReset();
-      for (int j = 0; j < numberOfEncoders; j++)
-      {
-        encoders[j].process(nextInterrupt);   
-      }
+    Serial.println(b);
+    
+    //Encoder encoder = encoders[0];    
+    //encoder.process(b);
     isExpanderInterrupted = false;
-    attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
-    
+    //attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
   }
 }
-
+byte lastKnown = 0;
 void loop()
 { 
-  for (byte i = 0; i < numberOfDisplays; i++)
+  byte b = expander.readB();
+
+  if (b != lastKnown)
+  {
+    Serial.println(b);
+  }
+
+  lastKnown = b;
+  
+  /*for (byte i = 0; i < numberOfDisplays; i++)
   {
     displays[i].showNumberDec(encoders[0].value + i, false, 4, 0);
     checkInterrupts();
   }
 
-  checkInterrupts();
     
-
+  
+*/
+  //checkInterrupts();
+    
+/*
   if (digitalRead(panicButtonPin) == LOW)
   {
     Serial.println("Debug pressed, please wait...");
@@ -117,21 +135,20 @@ void loop()
     delay(500);
     Serial.println("Okay, good to go");
   }
-
-  uint16_t exp2Io = expander2.readAndReset();
+*/
+  /*uint16_t exp2Io = expander2.readAndReset();
   if (expander2GpioValue != exp2Io)
   {
     writeBinary(exp2Io);  
     expander2GpioValue = exp2Io;
-  }
+  }*/
 }
 
-void writeBinary(uint16_t doubleByte){
-  for (byte i = 0; i < 16; i++)
+void writeBinary(byte doubleByte){
+  for (byte i = 0; i < 8; i++)
   {
     Serial.print(bitRead(doubleByte, i));
   }
-  Serial.println();
 }
 
 void onEncoderChanged(int8_t change, byte id, int value) 
@@ -146,5 +163,10 @@ void onEncoderChanged(int8_t change, byte id, int value)
 
 void onExpanderInterrupt()
 {
-  isExpanderInterrupted = true;
+  //isExpanderInterrupted = true;
+
+  
+      
+    
+    
 }

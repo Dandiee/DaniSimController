@@ -34,8 +34,8 @@ class Encoder
 
     byte process(byte gpioState) 
     {
-      byte pinAState = bitRead(gpioState, pinA);
-      byte pinBState = bitRead(gpioState, pinB);
+      byte pinAState = bitRead(gpioState, pinA - 8);
+      byte pinBState = bitRead(gpioState, pinB - 8);
       
       byte pinState = (pinAState << 1) | pinBState;
       state = stateTable[state & 0b00001111][pinState]; 
@@ -55,10 +55,9 @@ class Encoder
     }
 
   int value = 0;
-    
-  private:
     byte pinA = 0;
     byte pinB = 0;
+  private:
     byte id = 0;
     encoderCallback callback = nullptr;
     byte state = 0;
