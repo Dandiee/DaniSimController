@@ -108,7 +108,6 @@
   <ItemGroup>
     <ClInclude Include="Display.h" />
     <ClInclude Include="Encoder.h" />
-    <ClInclude Include="Expander.h" />
     <ClInclude Include="Mcp\McpSettings.h" />
     <ClInclude Include="Mcp\Mcp.h" />
     <ClInclude Include="Mcp\McpBuilder.h" />

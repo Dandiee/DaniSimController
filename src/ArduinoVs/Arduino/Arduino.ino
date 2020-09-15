@@ -3,7 +3,6 @@
 #include "Mcp/Mcp.h"
 #include "Mcp/McpBuilder.h"
 #include <HID-Project.h>
-//#include "Expander.h"
 #include "Encoder.h"
 #include "Display.h"
 #include "SimController.h"
@@ -24,55 +23,27 @@ Encoder encoders[] =
 byte numberOfEncoders = sizeof(encoders) / sizeof(encoders[0]);
 
 
-Mcp expander = McpBuilder(MCP_INPUT_SS_PIN)
-					.withPinDirections(0xFFFF)
-					.withPullUps(0xFFFF)
-					.withIoPolarity(0xFFFF)
-					.withInterrupts(0xFFFF)
-					.withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
-					.withIconMirror(1)
-					.withIconSequentialOperation(1)
-					.withIconHardwareAddress(1)
-					.build();
+Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
+	.withPinDirections(0xFFFF)
+	.withPullUps(0xFFFF)
+	.withIoPolarity(0xFFFF)
+	.withInterrupts(0xFFFF)
+	.withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
+	.withIconMirror(1)
+	.withIconSequentialOperation(1)
+	.withIconHardwareAddress(1).build();
 
+Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
+	.withIconMirror(1)
+	.withIconSequentialOperation(1)
+	.withIconHardwareAddress(1)
+	.build();
 
-
-/*Expander expander = Expander(
-	6,                  // SS Pin
-	0b1111111111111111, // Pin direction
-	0b1111111111111111, // Pull-up
-	0b1111111111111111, // IO Polarities
-	0b1111111111111111, // Use interrupts
-	0b0000000000000000, // Interrupt control
-	0b0000000000000000  // Interrupt default value
-);*/
 
 
 volatile bool isExpanderInterrupted = false;
 
 int potentiometers[] = { 0 };
-
-/*Expander expander2 = Expander(
-	5,                  // SS Pin
-	0b0000000000000000, // Pin direction
-	0b0000000000000000, // Pull-up
-	0b0000000000000000, // IO Polarities
-	0b0000000000000000, // Use interrupts
-	0b0000000000000000, // Interrupt control
-	0b0000000000000000  // Interrupt default value
-);*/
-
-
-Mcp expander2 = McpBuilder(MCP_OUTPUT_SS_PIN)
-.withIconMirror(1)
-.withIconSequentialOperation(1)
-.withIconHardwareAddress(1)
-.build();
-
-Mcp expanders[] = { expander2};
-
-
-byte numberOfExpanders = sizeof(expanders) / sizeof(expanders[0]);
 
 const byte commonDisplayClkPin = 2;
 Display displays[] =
@@ -104,26 +75,11 @@ void setup()
 {
 	Serial.begin(9600);
 	while (!Serial);
-	
-	SPI.begin();
-	expander2.begin();
-	expander.begin();
-	
-
-	/*for (byte i = 0; i < numberOfExpanders; i++)
-	{
-		byte ssPin = expanders[i].ssPin;
-		pinMode(ssPin, OUTPUT);
-		digitalWrite(ssPin, HIGH);
-	}
 
 	SPI.begin();
+	mcpInput.begin();
+	mcpOutput.begin();
 
-	for (byte i = 0; i < numberOfExpanders; i++)
-	{
-		expanders[i].begin();
-	}
-	*/
 	Serial.println("kickin");
 	//Gamepad.begin();
 }
@@ -134,7 +90,7 @@ void checkInterrupts()
 	{
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
 		Serial.println("INTERRUPTED");
-		uint16_t nextInterrupt = expander.readGpio();
+		uint16_t nextInterrupt = mcpInput.readGpio();
 		for (int j = 0; j < numberOfEncoders; j++)
 		{
 			encoders[j].process(nextInterrupt);
@@ -156,23 +112,23 @@ void loop()
 		checkInterrupts();
 	}
 
-	
+
 	if (((millis() / 1000) % 2 == 0))
 	{
-		expander2.writePin(7, HIGH);
-		expander2.writePin(5, HIGH);
-		expander2.writePin(6, LOW);
-		expander2.writePin(4, LOW);
+		mcpOutput.writePin(7, HIGH);
+		mcpOutput.writePin(5, HIGH);
+		mcpOutput.writePin(6, LOW);
+		mcpOutput.writePin(4, LOW);
 
 	}
 	else
 	{
-		expander2.writePin(7, LOW);
-		expander2.writePin(5, LOW);
-		expander2.writePin(6, HIGH);
-		expander2.writePin(4, HIGH);
+		mcpOutput.writePin(7, LOW);
+		mcpOutput.writePin(5, LOW);
+		mcpOutput.writePin(6, HIGH);
+		mcpOutput.writePin(4, HIGH);
 	}
-	
+
 	//Serial.println(expander.readAndReset());
 	//Serial.println(expander2.readAndReset());
 

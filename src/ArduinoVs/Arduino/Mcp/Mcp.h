@@ -25,7 +25,6 @@ const byte GPIOA = 0x12;   // Port value. Write to change, read to obtain value
 const byte GPIOB = 0x13;
 const byte OLLATA = 0x14;   // Output latch. Write to latch output.
 const byte OLLATB = 0x15;
-
 const byte EXP = 0x20;
 
 class Mcp
@@ -52,12 +51,12 @@ public:
 		writeByte(INTCONA, _settings.InterruptControlModes);
 		writeByte(DEFVALA, _settings.InterruptDefaultValue);
 
-		writeByte(IODIRB, _settings.IoDirections);
-		writeByte(GPPUB, _settings.PullUps);
-		writeByte(IOPOLB, _settings.IoPolarities);
-		writeByte(GPINTENB, _settings.UseInterrupts);
-		writeByte(INTCONB, _settings.InterruptControlModes);
-		writeByte(DEFVALB, _settings.InterruptDefaultValue);
+		writeByte(IODIRB, _settings.IoDirections >> 8);
+		writeByte(GPPUB, _settings.PullUps >> 8);
+		writeByte(IOPOLB, _settings.IoPolarities >> 8);
+		writeByte(GPINTENB, _settings.UseInterrupts >> 8);
+		writeByte(INTCONB, _settings.InterruptControlModes >> 8);
+		writeByte(DEFVALB, _settings.InterruptDefaultValue >> 8);
 
 		if (_settings.UseInterrupts && _settings.InterruptPin)
 		{
