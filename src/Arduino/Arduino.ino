@@ -26,6 +26,8 @@ Expander expander = Expander(
   0b0000000000000000, // Interrupt control
   0b0000000000000000  // Interrupt default value
 );
+
+
 volatile bool isExpanderInterrupted = false;
 
 int potentiometers[] = {0};
@@ -39,6 +41,9 @@ Expander expander2 = Expander(
   0b0000000000000000, // Interrupt control
   0b0000000000000000  // Interrupt default value
 );
+
+Expander expanders[] = { expander, expander2 };
+byte numberOfExpanders = sizeof(expanders)/sizeof(expanders[0]);
 
 const byte commonDisplayClkPin = 2;
 Display displays[] = 
@@ -69,14 +74,24 @@ void setup()
 {
   Serial.begin(9600);
   while(!Serial);
-  expander.begin();
-  Serial.println("kickin");
 
-  expander2.begin();
-  Serial.println("kickin 2 - the expander strikes back");
+  for (byte i = 0; i < numberOfExpanders; i++)
+  {
+    byte ssPin = expanders[i].ssPin;
+    pinMode(ssPin, OUTPUT);
+    digitalWrite(ssPin, HIGH);
+  }
+
+  SPI.begin();
+
+  for (byte i = 0; i < numberOfExpanders; i++)
+  {
+    expanders[i].begin();
+  }
+
   
-  //pinMode(panicButtonPin, INPUT_PULLUP);
-
+  
+  Serial.println("kickin");
   //Gamepad.begin();
 }
 
@@ -84,6 +99,7 @@ void checkInterrupts()
 {
   if (isExpanderInterrupted)
   {
+      Serial.println("INTERRUPTED");
       detachInterrupt(digitalPinToInterrupt(INTPIN));
     
       uint16_t nextInterrupt = expander.readAndReset();
@@ -117,8 +133,8 @@ void loop()
     expander2.writePin(7, LOW);
   }
 
-  Serial.println(expander.readAndReset());
-  Serial.println(expander2.readAndReset());
+  //Serial.println(expander.readAndReset());
+  //Serial.println(expander2.readAndReset());
 
   checkInterrupts();
 

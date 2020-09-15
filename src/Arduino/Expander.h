@@ -50,8 +50,6 @@ class Expander
 
     void begin()
     {
-      SPI.begin();
-      pinMode(ssPin, OUTPUT);
       write(ssPin, HIGH);
 
       if (useInterrupts)
@@ -61,32 +59,32 @@ class Expander
       }
 
       byte BANK = 0;    // Controls how the registers are addressed
-      //        0 = The registers are in the same bank (addresses are sequential).
-      //        1 = The registers associated with each port are separated into different banks.
+                        //        0 = The registers are in the same bank (addresses are sequential).
+                        //        1 = The registers associated with each port are separated into different banks.
 
       byte MIRROR = 1;  // INT Pins Mirror bit
-      //        0 = The INT pins are not connected. INTA is associated with PORTA and INTB is associated with
-      //        1 = The INT pins are internally connected
+                        //        0 = The INT pins are not connected. INTA is associated with PORTA and INTB is associated with
+                        //        1 = The INT pins are internally connected
 
       byte SEQOP = 1;   // Sequential Operation mode bit
-      //        0 = Sequential operation enabled, address pointer increments.
-      //        1 = Sequential operation disabled, address pointer does not increment.
+                        //        0 = Sequential operation enabled, address pointer increments.
+                        //        1 = Sequential operation disabled, address pointer does not increment.
 
       byte DISSLW = 0;  // Slew Rate control bit for SDA output
-      //        0 = Slew rate enabled
-      //        1 = Slew rate disabled
+                        //        0 = Slew rate enabled
+                        //        1 = Slew rate disabled
 
       byte HAEN = 1;    //  Hardware Address Enable bit (MCP23S17 only)
-      //        0 = Disables the MCP23S17 address pins
-      //        1 = Enables the MCP23S17 address pins
+                        //        0 = Disables the MCP23S17 address pins
+                        //        1 = Enables the MCP23S17 address pins
 
       byte ODR = 0;     // Configures the INT pin as an open-drain output
-      //        0 = Active driver output (INTPOL bit sets the polarity.)
-      //        1 = Open-drain output (overrides the INTPOL bit.)
+                        //        0 = Active driver output (INTPOL bit sets the polarity.)
+                        //        1 = Open-drain output (overrides the INTPOL bit.)
 
       byte INPOT = 0;   // This bit sets the polarity of the INT output pin
-      //        0 = Active-low
-      //        1 = Active-high
+                        //        0 = Active-low
+                        //        1 = Active-high
 
       uint16_t icon = 0;
       bitWrite(icon, 7, BANK);
@@ -96,9 +94,9 @@ class Expander
       bitWrite(icon, 3, HAEN);
       bitWrite(icon, 2, ODR);
       bitWrite(icon, 1, INPOT);
+      write(IOCON, icon);
 
-      // write(IOCON,    0b01101000);
-
+     
       write(IODIRA,   pinDirections         & 0x00FF);  // Pin direction            : Output    Input
       write(GPPUA,    pullUps               & 0x00FF);  // Pull-up resistor         : Disabled  Enabled
       write(IOPOLA,   ioPolarities          & 0x00FF);  // IO polarity              : Normal    Inversed
@@ -149,10 +147,12 @@ class Expander
       digitalWrite(ssPin, HIGH);
     }
 
+    byte ssPin = 0;
+
   private:
 
     uint16_t lastKnownGpioState = 0;
-    byte ssPin = 0;
+    
     bool useInterrupt = false;
 
     uint16_t pinDirections          = 0b0000000000000000;
