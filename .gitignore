@@ -91,7 +91,9 @@ StyleCopReport.xml
 .builds
 *.pidb
 *.svclog
-*.scc
+__vm/
+CppProperties.json
+
 
 # Chutzpah Test files
 _Chutzpah*

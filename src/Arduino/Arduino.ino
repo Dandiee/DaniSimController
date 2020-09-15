@@ -88,8 +88,6 @@ void setup()
   {
     expanders[i].begin();
   }
-
-  
   
   Serial.println("kickin");
   //Gamepad.begin();
@@ -99,7 +97,6 @@ void checkInterrupts()
 {
   if (isExpanderInterrupted)
   {
-      Serial.println("INTERRUPTED");
       detachInterrupt(digitalPinToInterrupt(INTPIN));
     
       uint16_t nextInterrupt = expander.readAndReset();
@@ -127,10 +124,17 @@ void loop()
   if (((millis() / 1000) % 2 == 0))
   {
     expander2.writePin(7, HIGH);
+    expander2.writePin(5, HIGH);
+    expander2.writePin(6, LOW);
+    expander2.writePin(4, LOW);
+    
   }
   else
   {
     expander2.writePin(7, LOW);
+    expander2.writePin(5, LOW);
+    expander2.writePin(6, HIGH);
+    expander2.writePin(4, HIGH);
   }
 
   //Serial.println(expander.readAndReset());
