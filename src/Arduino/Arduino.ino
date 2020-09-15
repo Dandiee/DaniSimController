@@ -97,6 +97,7 @@ void checkInterrupts()
   }
 }
 
+long c = 0;
 void loop()
 { 
   for (byte i = 0; i < 4; i++)
@@ -107,7 +108,17 @@ void loop()
     checkInterrupts();
   }
 
-  
+  if (((millis() / 1000) % 2 == 0))
+  {
+    expander2.writePin(7, HIGH);
+  }
+  else
+  {
+    expander2.writePin(7, LOW);
+  }
+
+  Serial.println(expander.readAndReset());
+  Serial.println(expander2.readAndReset());
 
   checkInterrupts();
 
