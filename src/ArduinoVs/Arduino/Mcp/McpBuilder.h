@@ -179,9 +179,8 @@ public:
 		return setBothBanks(&_settings.InterruptPin, pin);
 	}
 
-	McpSettings getSettings()
-	{
-		return _settings;
+	Mcp build() {
+		return Mcp(_settings);
 	}
 
 private:

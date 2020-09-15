@@ -1,3 +1,5 @@
+void onExpanderInterrupt();
+
 #include <SPI.h>
 #ifndef _MCP_h
 #define _MCP_h
@@ -31,31 +33,57 @@ class Mcp
 public:
 
 	Mcp(McpSettings settings)
-		: _settings(settings)
-	{
-		_slaveSelectorPin = settings.SlaveSelectorPin;
+		: _settings(settings) 
+	{ 
+		_slaveSelectorPin = _settings.SlaveSelectorPin;
 
-		pinMode(settings.SlaveSelectorPin, OUTPUT);
-		digitalWrite(settings.SlaveSelectorPin, HIGH);
-		SPI.begin();
+		pinMode(_slaveSelectorPin, OUTPUT);
+		digitalWrite(_slaveSelectorPin, HIGH);
+	}
 
-		writeByte(IOCON, settings.Iocon);
+	void begin() {
 
-		writeWord(IODIRA, settings.InterruptPin);
-		writeWord(GPPUA, settings.PullUps);
-		writeWord(IOPOLA, settings.IoPolarities);
-		writeWord(GPINTENA, settings.InterruptPin);
-		writeWord(INTCONA, settings.InterruptControlModes);
-		writeWord(DEFVALA, settings.InterruptDefaultValue);
+		writeByte(IOCON, _settings.Iocon);
 
-		if (settings.UseInterrupts && settings.InterruptPin)
+		writeByte(IODIRA, _settings.IoDirections);
+		writeByte(GPPUA, _settings.PullUps);
+		writeByte(IOPOLA, _settings.IoPolarities);
+		writeByte(GPINTENA, _settings.UseInterrupts);
+		writeByte(INTCONA, _settings.InterruptControlModes);
+		writeByte(DEFVALA, _settings.InterruptDefaultValue);
+
+		writeByte(IODIRB, _settings.IoDirections);
+		writeByte(GPPUB, _settings.PullUps);
+		writeByte(IOPOLB, _settings.IoPolarities);
+		writeByte(GPINTENB, _settings.UseInterrupts);
+		writeByte(INTCONB, _settings.InterruptControlModes);
+		writeByte(DEFVALB, _settings.InterruptDefaultValue);
+
+		if (_settings.UseInterrupts && _settings.InterruptPin)
 		{
-			pinMode(settings.InterruptPin, INPUT_PULLUP);
-			attachInterrupt(digitalPinToInterrupt(settings.InterruptPin), ::onExpanderInterrupt, FALLING);
+			pinMode(_settings.InterruptPin, INPUT_PULLUP);
+			attachInterrupt(digitalPinToInterrupt(_settings.InterruptPin), ::onExpanderInterrupt, FALLING);
 
 			readByte(INTCAPA);
 			readByte(INTCAPB);
 		}
+
+		printSettings();
+	}
+
+	void printSettings() {
+		
+		Serial.println();
+		Serial.println("IoDirections:" + String(_settings.IoDirections));
+		Serial.println("PullUps:" + String(_settings.PullUps));
+		Serial.println("IoPolarities:" + String(_settings.IoPolarities));
+		Serial.println("UseInterrupts:" + String(_settings.UseInterrupts));
+		Serial.println("InterruptControlModes:" + String(_settings.InterruptControlModes));
+		Serial.println("InterruptDefaultValue:" + String(_settings.InterruptDefaultValue));
+		Serial.println("InterruptPin:" + String(_settings.InterruptPin));
+		Serial.println("SlaveSelector:" + String(_slaveSelectorPin));
+		Serial.println("Iocon:" + String(_settings.Iocon));
+		
 	}
 
 	uint16_t readGpio() {
@@ -65,12 +93,25 @@ public:
 		uint16_t value = SPI.transfer(0x00);
 		value |= (SPI.transfer(0x00) << 8);
 		digitalWrite(_slaveSelectorPin, HIGH);
+		_lastKnownGpio = value; // TODO: maybe we dont need that value declared
 		return value;
+	}
+
+	void writePin(uint8_t pin, bool value) {
+		uint16_t word = 0;
+		bitWrite(word, pin, value);
+		writeGpio(word);
 	}
 
 private:
 	McpSettings _settings;
 	uint8_t _slaveSelectorPin;
+	uint16_t _lastKnownGpio;
+
+	void writeGpio(uint16_t value) {
+		writeWord(GPIOA, value);
+		_lastKnownGpio = value;
+	}
 
 	void writeByte(uint8_t registerAddress, uint8_t value) {
 		digitalWrite(_slaveSelectorPin, LOW);
@@ -89,8 +130,7 @@ private:
 		digitalWrite(_slaveSelectorPin, HIGH);
 	}
 
-	uint8_t readByte(const uint8_t registerAddress)
-	{
+	uint8_t readByte(const uint8_t registerAddress) {
 		digitalWrite(_slaveSelectorPin, LOW);
 		SPI.transfer((EXP << 1) | 1);
 		SPI.transfer(registerAddress);
