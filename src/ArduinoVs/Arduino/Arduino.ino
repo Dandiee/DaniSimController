@@ -1,3 +1,6 @@
+#include "Mcp/McpSettings.h"
+// #include "Mcp/Mcp.h"
+#include "Mcp/McpBuilder.h"
 #include <HID-Project.h>
 #include "Expander.h"
 #include "Encoder.h"
@@ -16,15 +19,16 @@ Encoder encoders[] =
   Encoder(4, 5, 3, onEncoderChanged),
   Encoder(6, 7, 4, onEncoderChanged)
 };
+
 byte numberOfEncoders = sizeof(encoders) / sizeof(encoders[0]);
 Expander expander = Expander(
-    6,                  // SS Pin
-    0b1111111111111111, // Pin direction
-    0b1111111111111111, // Pull-up
-    0b1111111111111111, // IO Polarities
-    0b1111111111111111, // Use interrupts
-    0b0000000000000000, // Interrupt control
-    0b0000000000000000  // Interrupt default value
+	6,                  // SS Pin
+	0b1111111111111111, // Pin direction
+	0b1111111111111111, // Pull-up
+	0b1111111111111111, // IO Polarities
+	0b1111111111111111, // Use interrupts
+	0b0000000000000000, // Interrupt control
+	0b0000000000000000  // Interrupt default value
 );
 
 
@@ -33,13 +37,13 @@ volatile bool isExpanderInterrupted = false;
 int potentiometers[] = { 0 };
 
 Expander expander2 = Expander(
-    5,                  // SS Pin
-    0b0000000000000000, // Pin direction
-    0b0000000000000000, // Pull-up
-    0b0000000000000000, // IO Polarities
-    0b0000000000000000, // Use interrupts
-    0b0000000000000000, // Interrupt control
-    0b0000000000000000  // Interrupt default value
+	5,                  // SS Pin
+	0b0000000000000000, // Pin direction
+	0b0000000000000000, // Pull-up
+	0b0000000000000000, // IO Polarities
+	0b0000000000000000, // Use interrupts
+	0b0000000000000000, // Interrupt control
+	0b0000000000000000  // Interrupt default value
 );
 
 Expander expanders[] = { expander, expander2 };
@@ -57,6 +61,7 @@ Display displays[] =
   Display(commonDisplayClkPin, 12),
   Display(commonDisplayClkPin, 13),
 };
+
 byte numberOfDisplays = sizeof(displays) / sizeof(displays[0]);
 const byte panicButtonPin = 4;
 
@@ -72,130 +77,136 @@ bool isWriting = false;
 
 void setup()
 {
-    Serial.begin(9600);
-    while (!Serial);
+	Serial.begin(9600);
+	while (!Serial);
 
-    for (byte i = 0; i < numberOfExpanders; i++)
-    {
-        byte ssPin = expanders[i].ssPin;
-        pinMode(ssPin, OUTPUT);
-        digitalWrite(ssPin, HIGH);
-    }
+	McpSettings settings = McpBuilder(7)
+		.withIconBank(true)
+		.withPullUps(0xFFFF)
+		.withIoPolarity(0xFF00)
+		.getSettings();
 
-    SPI.begin();
+	for (byte i = 0; i < numberOfExpanders; i++)
+	{
+		byte ssPin = expanders[i].ssPin;
+		pinMode(ssPin, OUTPUT);
+		digitalWrite(ssPin, HIGH);
+	}
 
-    for (byte i = 0; i < numberOfExpanders; i++)
-    {
-        expanders[i].begin();
-    }
+	SPI.begin();
 
-    Serial.println("kickin");
-    //Gamepad.begin();
+	for (byte i = 0; i < numberOfExpanders; i++)
+	{
+		expanders[i].begin();
+	}
+
+	Serial.println("kickin");
+	//Gamepad.begin();
 }
 
 void checkInterrupts()
 {
-    if (isExpanderInterrupted)
-    {
-        detachInterrupt(digitalPinToInterrupt(INTPIN));
+	if (isExpanderInterrupted)
+	{
+		detachInterrupt(digitalPinToInterrupt(INTPIN));
 
-        uint16_t nextInterrupt = expander.readAndReset();
-        for (int j = 0; j < numberOfEncoders; j++)
-        {
-            encoders[j].process(nextInterrupt);
-        }
+		uint16_t nextInterrupt = expander.readAndReset();
+		for (int j = 0; j < numberOfEncoders; j++)
+		{
+			encoders[j].process(nextInterrupt);
+		}
 
-        isExpanderInterrupted = false;
-        attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
-    }
+		isExpanderInterrupted = false;
+		attachInterrupt(digitalPinToInterrupt(INTPIN), onExpanderInterrupt, FALLING);
+	}
 }
 
 long c = 0;
 void loop()
 {
-    for (byte i = 0; i < 4; i++)
-    {
-        displays[i].showNumberDec(encoders[i].value, false, 4, 0);
-        checkInterrupts();
-        displays[i + 4].showNumberDec(encoders[i].value + 1, false, 4, 0);
-        checkInterrupts();
-    }
+	for (byte i = 0; i < 4; i++)
+	{
+		displays[i].showNumberDec(encoders[i].value, false, 4, 0);
+		checkInterrupts();
+		displays[i + 4].showNumberDec(encoders[i].value + 1, false, 4, 0);
+		checkInterrupts();
+	}
 
-    if (((millis() / 1000) % 2 == 0))
-    {
-        expander2.writePin(7, HIGH);
-        expander2.writePin(5, HIGH);
-        expander2.writePin(6, LOW);
-        expander2.writePin(4, LOW);
+	if (((millis() / 1000) % 2 == 0))
+	{
+		expander2.writePin(7, HIGH);
+		expander2.writePin(5, HIGH);
+		expander2.writePin(6, LOW);
+		expander2.writePin(4, LOW);
 
-    }
-    else
-    {
-        expander2.writePin(7, LOW);
-        expander2.writePin(5, LOW);
-        expander2.writePin(6, HIGH);
-        expander2.writePin(4, HIGH);
-    }
+	}
+	else
+	{
+		expander2.writePin(7, LOW);
+		expander2.writePin(5, LOW);
+		expander2.writePin(6, HIGH);
+		expander2.writePin(4, HIGH);
+	}
 
-    //Serial.println(expander.readAndReset());
-    //Serial.println(expander2.readAndReset());
+	//Serial.println(expander.readAndReset());
+	//Serial.println(expander2.readAndReset());
 
-    checkInterrupts();
+	checkInterrupts();
 
-    /*checkInterrupts();
+	/*checkInterrupts();
 
-    if (digitalRead(panicButtonPin) == LOW)
-    {
-      Serial.println("Debug pressed, please wait...");
-      uint16_t gpioState = expander.readAndReset();
-      writeBinary(gpioState);
-      delay(500);
-      Serial.println("Okay, good to go");
-    }*/
+	if (digitalRead(panicButtonPin) == LOW)
+	{
+	  Serial.println("Debug pressed, please wait...");
+	  uint16_t gpioState = expander.readAndReset();
+	  writeBinary(gpioState);
+	  delay(500);
+	  Serial.println("Okay, good to go");
+	}*/
 
-    /*uint16_t exp2Io = expander2.readAndReset();
-    if (expander2GpioValue != exp2Io)
-    {
-      writeBinary(exp2Io);
-      expander2GpioValue = exp2Io;
-    }*/
+	/*uint16_t exp2Io = expander2.readAndReset();
+	if (expander2GpioValue != exp2Io)
+	{
+	  writeBinary(exp2Io);
+	  expander2GpioValue = exp2Io;
+	}*/
 
-    //simController.readSerial();
+	//simController.readSerial();
 
-    //sendGamepadReport();
+	//sendGamepadReport();
 }
 
 void sendGamepadReport()
 {
-    //Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
-    Gamepad.xAxis(100);
-    Gamepad.write();
+	//Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
+	Gamepad.xAxis(100);
+	Gamepad.write();
 }
 
 void writeBinary(uint16_t doubleByte) {
-    for (byte i = 0; i < 16; i++)
-    {
-        Serial.print(bitRead(doubleByte, i));
-    }
-    //Serial.println();
+	for (byte i = 0; i < 16; i++)
+	{
+		Serial.print(bitRead(doubleByte, i));
+	}
+	//Serial.println();
 }
 
 void onEncoderChanged(int8_t change, byte id, int value)
 {
-    Serial.print(id);
-    Serial.print(":");
-    Serial.print(change);
-    Serial.print(" (");
-    Serial.print(value);
-    Serial.println(")");
+	Serial.print(id);
+	Serial.print(":");
+	Serial.print(change);
+	Serial.print(" (");
+	Serial.print(value);
+	Serial.println(")");
 }
 
 void onSimStateChanged(byte key, int value)
 {
-    displays[0].showNumberDec(value, false, 4, 0);
+	displays[0].showNumberDec(value, false, 4, 0);
 }
 
 void onExpanderInterrupt()
 {
-    isExpanderInterrupted = true;
+	isExpanderInterrupted = true;
 }
