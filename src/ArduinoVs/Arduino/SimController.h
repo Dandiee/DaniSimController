@@ -57,7 +57,6 @@ class SimController
       int prevValue = state[key];
       if (prevValue != value)
       {
-        Serial.println("Key: " + String(key) + " Value: " + String(value));
         state[key] = value;  
         callback(key, value);
       }

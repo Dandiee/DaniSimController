@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
 using DaniSimController.Models;
@@ -26,6 +27,24 @@ namespace DaniSimController.ViewModels
 
             eventAggregator.GetEvent<SimVarRequestRemovedEvent>().Subscribe(SimVarRequestRemoved);
             eventAggregator.GetEvent<SimVarRequestAddedEvent>().Subscribe(SimVarRequestAdded);
+
+            eventAggregator.GetEvent<SimConnectConnectedEvent>().Subscribe(_ =>
+            {
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.GearHandlePosition); // 0
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotMaster); // 1
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotHeadingLock); // 2
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotAltitudeLock); // 3
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotAirspeedHold); // 4
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotVerticalHold); // 5
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.HeadingIndicator); // 6
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotHeadingLockDir); // 7
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.IndicatedAltitude); // 8
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotAltitudeLockVar); // 9
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AirspeedIndicated); // 10
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotAirspeedHoldVar); // 11
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.VerticalSpeed); // 12
+                eventAggregator.GetEvent<AddSimVarRequestEvent>().Publish(SimVar.AutopilotVerticalHoldVar); // 13
+            });
 
             SimVars = new ObservableCollection<SimVar>(SimVar.All);
             SimVarsCollection = new ListCollectionView(SimVars)

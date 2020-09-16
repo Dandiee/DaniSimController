@@ -52,7 +52,7 @@ namespace DaniSimController.ViewModels
                 {
                     value.Value = newValue.ToString(CultureInfo.InvariantCulture);
                     value.IntValue = newInteger;
-                    var line = $"|{obj.RequestId}:{newInteger}";
+                    var line = $"|{(int)obj.RequestId}:{newInteger}";
                     _eventAggregator.GetEvent<WriteToSerialEvent>().Publish(line);
                     Debug.WriteLine(line);
                 }

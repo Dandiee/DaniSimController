@@ -12,6 +12,7 @@ namespace DaniSimController.Services
     {
         void Connect(HwndSource hwndSource);
     }
+    public sealed class SimConnectConnectedEvent : PubSubEvent<object> { }
 
     public sealed class SimVarComponent : ISimVarComponent
     {
@@ -45,6 +46,9 @@ namespace DaniSimController.Services
             _simConnect = new SimConnect("Dani", hwndSource.Handle, 0x0402, null, 0);
             _simConnect.OnRecvOpen += (_, __) =>
             {
+                _eventAggregator.GetEvent<SimConnectConnectedEvent>().Publish(_simConnect);
+                
+
                 _poller.Start();
             };
 

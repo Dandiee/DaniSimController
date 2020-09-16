@@ -65,98 +65,141 @@ Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768);
 
 void setup()
 {
-	Serial.begin(9600);
-	while (!Serial);
+  Serial.begin(115200);
+  while (!Serial);
 
-	SPI.begin();
-	mcpInput.begin();
-	mcpOutput.begin();
+  SPI.begin();
+  mcpInput.begin();
+  mcpOutput.begin();
 
-	Serial.println("kickin");
-	Gamepad.begin();
+  Serial.println("kickin");
+  Gamepad.begin();
 }
 
 void checkInterrupts()
 {
-	if (isExpanderInterrupted)
-	{
-		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
-		uint16_t gpio = mcpInput.readGpio();
+  if (isExpanderInterrupted)
+  {
+    detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
+    uint16_t gpio = mcpInput.readGpio();
 
-		// Serial.println("INTERRUPT");
+    // Serial.println("INTERRUPT");
 
-		encoder1.process(gpio);
-		encoder2.process(gpio);
-		encoder3.process(gpio);
-		encoder4.process(gpio);
+    encoder1.process(gpio);
+    encoder2.process(gpio);
+    encoder3.process(gpio);
+    encoder4.process(gpio);
 
-		encoderButton1.checkState(gpio);
-		encoderButton2.checkState(gpio);
-		encoderButton3.checkState(gpio);
-		encoderButton4.checkState(gpio);
+    encoderButton1.checkState(gpio);
+    encoderButton2.checkState(gpio);
+    encoderButton3.checkState(gpio);
+    encoderButton4.checkState(gpio);
 
-		button1.checkState(gpio);
-		button2.checkState(gpio);
+    button1.checkState(gpio);
+    button2.checkState(gpio);
 
-		isExpanderInterrupted = false;
-		attachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN), onExpanderInterrupt, FALLING);
-	}
+    isExpanderInterrupted = false;
+    attachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN), onExpanderInterrupt, FALLING);
+  }
 }
 
 void loop()
 {
-	checkInterrupts();
-	simController.readSerial();
-	sendGamepadReport();
+  checkInterrupts();
+  simController.readSerial();
+  sendGamepadReport();
 }
 
 void sendGamepadReport()
 {
-	Gamepad.buttons(
-		encoderButton1.lastKnownState
-		| encoderButton2.lastKnownState << 1
-		| encoderButton3.lastKnownState << 2
-		| encoderButton4.lastKnownState << 3
-		| button1.lastKnownState << 4
-		| button2.lastKnownState << 5);
+  Gamepad.buttons(
+    encoderButton1.lastKnownState
+    | encoderButton2.lastKnownState << 1
+    | encoderButton3.lastKnownState << 2
+    | encoderButton4.lastKnownState << 3
+    | button1.lastKnownState << 4
+    | button2.lastKnownState << 5);
 
-	Gamepad.xAxis(pot5.readAndGetValue()); // linear slider
+  Gamepad.xAxis(pot5.readAndGetValue()); // linear slider
 
-	Gamepad.zAxis(pot1.readAndGetValue()); // -128 -> 128
+  Gamepad.zAxis(pot1.readAndGetValue()); // -128 -> 128
 
-	Gamepad.yAxis(pot2.readAndGetValue());
-	Gamepad.rxAxis(pot3.readAndGetValue());
-	Gamepad.ryAxis(pot4.readAndGetValue());
+  Gamepad.yAxis(pot2.readAndGetValue());
+  Gamepad.rxAxis(pot3.readAndGetValue());
+  Gamepad.ryAxis(pot4.readAndGetValue());
 
-	Gamepad.write();
+  Gamepad.write();
 }
 
 
 void onEncoderChanged(int8_t change, uint8_t id, int value)
 {
-	/*Serial.print(id);
-	Serial.print(":");
-	Serial.print(change);
-	Serial.print(" (");
-	Serial.print(value);
-	Serial.println(")");*/
+  /*Serial.print(id);
+  Serial.print(":");
+  Serial.print(change);
+  Serial.print(" (");
+  Serial.print(value);
+  Serial.println(")");*/
 }
 
 void onSimStateChanged(byte key, int value)
 {
-	if (key == 0)
-	{
-    Serial.println("Callback execed with value: " + String(value));
-		mcpOutput.writePin(8, value == 1 ? HIGH : LOW);
-	}
+    Serial.println("Key " + String(key) + " received: " + String(value));
+
+  switch (key)
+  {
+  case 0: // gear
+    mcpOutput.writePin(8, value == 0 ? LOW : HIGH);
+    return;
+  case 1: // auto pilot on
+      mcpOutput.writePin(9, value == 0 ? LOW : HIGH);
+      return;
+  case 2: // hdg on
+      mcpOutput.writePin(0, value == 0 ? LOW : HIGH);
+      return;
+  case 3: // alt on
+      mcpOutput.writePin(1, value == 0 ? LOW : HIGH);
+      return;
+  case 4: // speed on
+      mcpOutput.writePin(2, value == 0 ? LOW : HIGH);
+      return;
+  case 5: // v speed on
+      mcpOutput.writePin(3, value == 0 ? LOW : HIGH);
+      return;
+  case 6: // indicated hdg
+      display1.showNumberDec(value, 0, 4, 0);
+      return;
+  case 7: // auto pilot hdg
+      display2.showNumberDec(value, 0, 4, 0);
+      return;
+  case 8: // indicated alt
+      display3.showNumberDec(value, 0, 4, 0);
+      return;
+  case 9: // auto pilot alt
+      display4.showNumberDec(value, 0, 4, 0);
+      return;
+  case 10: // indicated speed
+      display5.showNumberDec(value, 0, 4, 0);
+      return;
+  case 11: // auto pilot speed
+      display6.showNumberDec(value, 0, 4, 0);
+      return;
+  case 12: // indicated vspeed
+      display7.showNumberDec(value, 0, 4, 0);
+      return;
+  case 13: // auto pilot vspeed
+      display8.showNumberDec(value, 0, 4, 0);
+      return;
+      default: return;
+  }
 }
 
 void onExpanderInterrupt()
 {
-	isExpanderInterrupted = true;
+  isExpanderInterrupted = true;
 }
 
 void onButtonPressed(Button sender)
 {
-	//Serial.println("Pressed: " + String(sender.pin));
+  //Serial.println("Pressed: " + String(sender.pin));
 }

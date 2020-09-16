@@ -40,11 +40,21 @@ namespace DaniSimController.ViewModels
             Refresh();
         }
 
+        private int _lineCounter = 0;
         private void Write(string line)
         {
             if (IsOpened)
             {
                 _serialPort.WriteLine(line);
+                _lineCounter++;
+
+                if (_lineCounter == 20)
+                {
+                    _log = string.Empty;
+                    _lineCounter = 0;
+                }
+
+                Log += $"{line}\r\n";
             }
         }
 
@@ -88,6 +98,13 @@ namespace DaniSimController.ViewModels
             }
         }
 
+        private string _log;
+        public string Log
+        {
+            get => _log;
+            set => SetProperty(ref _log, value);
+        }
+
         private bool _isOpened;
         public bool IsOpened
         {
@@ -123,7 +140,7 @@ namespace DaniSimController.ViewModels
             set => SetProperty(ref _portName, value);
         }
 
-        private int _baudRate = 9600;
+        private int _baudRate = 115200;
         public int BaudRate
         {
             get => _baudRate;
