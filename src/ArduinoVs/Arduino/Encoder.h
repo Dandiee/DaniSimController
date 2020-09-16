@@ -33,8 +33,11 @@ public:
 	Encoder(uint8_t pinA, uint8_t pinB, uint8_t id, encoderCallback callback = nullptr)
 		: pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) { }
 
-	uint8_t process(uint8_t a, uint8_t b)
+	uint8_t process(uint16_t gpio)
 	{
+		uint8_t a = bitRead(gpio, pinA);
+		uint8_t b = bitRead(gpio, pinB);
+
 		if (a != stateA || b != stateB)
 		{
 			stateA = a;

@@ -14,8 +14,6 @@ void onSimStateChanged(byte key, int value);
 
 SimController simController = SimController(onSimStateChanged);
 
-
-
 Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
 	.withPinDirections(0xFFFF)
 	.withPullUps(0xFFFF)
@@ -32,23 +30,17 @@ Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
 	.withIconHardwareAddress(1)
 	.build();
 
-
-
 volatile bool isExpanderInterrupted = false;
 
-int potentiometers[] = { 0 };
 
-Display displays[] =
-{
-  Display(DIS_CLK_PIN, DIS_0_0_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_0_1_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_1_0_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_1_1_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_2_0_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_2_1_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_3_0_DIO_PIN),
-  Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN),
-};
+Display display1 = Display(DIS_CLK_PIN, DIS_0_0_DIO_PIN);
+Display display2 = Display(DIS_CLK_PIN, DIS_0_1_DIO_PIN);
+Display display3 = Display(DIS_CLK_PIN, DIS_1_0_DIO_PIN);
+Display display4 = Display(DIS_CLK_PIN, DIS_1_1_DIO_PIN);
+Display display5 = Display(DIS_CLK_PIN, DIS_2_0_DIO_PIN);
+Display display6 = Display(DIS_CLK_PIN, DIS_2_1_DIO_PIN);
+Display display7 = Display(DIS_CLK_PIN, DIS_3_0_DIO_PIN);
+Display display8 = Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN);
 
 Button encoderButton1 = Button(ENC_0_BTN_GPIO_PIN, onButtonPressed);
 Button encoderButton2 = Button(ENC_1_BTN_GPIO_PIN, onButtonPressed);
@@ -57,20 +49,10 @@ Button encoderButton4 = Button(ENC_3_BTN_GPIO_PIN, onButtonPressed);
 Button button1 = Button(BTN_0_GPIO_PIN, onButtonPressed);
 Button button2 = Button(BTN_1_GPIO_PIN, onButtonPressed);
 
-byte numberOfDisplays = sizeof(displays) / sizeof(displays[0]);
-const byte panicButtonPin = 4;
-
-uint16_t expander2GpioValue = 0;
-volatile bool isQueueAUnderWrite = true;
-
-volatile byte interruptsCountA = 0;
-volatile byte interruptsCountB = 0;
-
-
-
-bool isWriting = false;
-
-Encoder encoders[ENC_NUM];
+Encoder encoder1 = Encoder(ENC_0_GPIO_A_PINS, ENC_0_GPIO_B_PINS, 1, onEncoderChanged);
+Encoder encoder2 = Encoder(ENC_1_GPIO_A_PINS, ENC_1_GPIO_B_PINS, 2, onEncoderChanged);
+Encoder encoder3 = Encoder(ENC_2_GPIO_A_PINS, ENC_2_GPIO_B_PINS, 3, onEncoderChanged);
+Encoder encoder4 = Encoder(ENC_3_GPIO_A_PINS, ENC_3_GPIO_B_PINS, 4, onEncoderChanged);
 
 void setup()
 {
@@ -80,10 +62,6 @@ void setup()
 	SPI.begin();
 	mcpInput.begin();
 	mcpOutput.begin();
-
-	for (uint8_t i = 0; i < ENC_NUM; i++) {
-		encoders[i] = Encoder(ENC_GPIO_PINS[i][0], ENC_GPIO_PINS[i][1], i, onEncoderChanged);
-	}
 
 	Serial.println("kickin");
 	//Gamepad.begin();
@@ -96,12 +74,10 @@ void checkInterrupts()
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
 		uint16_t gpio = mcpInput.readGpio();
 		
-		for (uint8_t i = 0; i < ENC_NUM; i++)
-		{
-			encoders[i].process(
-				bitRead(gpio, encoders[i].pinA), 
-				bitRead(gpio, encoders[i].pinB));
-		}
+		encoder1.process(gpio);
+		encoder2.process(gpio);
+		encoder3.process(gpio);
+		encoder4.process(gpio);
 
 		encoderButton1.checkState(gpio);
 		encoderButton2.checkState(gpio);
@@ -115,22 +91,19 @@ void checkInterrupts()
 	}
 }
 
-long c = 0;
 void loop()
 {
-	
 	if (((millis() / 1000) % 2 == 0))
 	{
 		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
 		mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
-
 	}
 	else
 	{
 		mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
 		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
 	}
-
+	
 	checkInterrupts();
 
 	/*checkInterrupts();
@@ -173,9 +146,6 @@ void writeBinary(uint16_t doubleByte) {
 
 void onEncoderChanged(int8_t change, uint8_t id, int value)
 {
-	displays[id * 2].showNumberDec(encoders[id].value, false, 4, 0);
-	displays[id * 2 + 1].showNumberDec(encoders[id].value + 1, false, 4, 0);
-	
 	Serial.print(id);
 	Serial.print(":");
 	Serial.print(change);
@@ -186,7 +156,7 @@ void onEncoderChanged(int8_t change, uint8_t id, int value)
 
 void onSimStateChanged(byte key, int value)
 {
-	displays[0].showNumberDec(value, false, 4, 0);
+	// displays[0].showNumberDec(value, false, 4, 0);
 }
 
 void onExpanderInterrupt()
@@ -198,6 +168,7 @@ void onButtonPressed(Button sender)
 {
 	if (sender.pin == ENC_0_BTN_GPIO_PIN)
 	{
-		displays[0].showNumberDec(0, 0, 4, 0);
+		// displays[0].showNumberDec(0, 0, 4, 0);
+		display1.showNumberDec(0, 0, 4, 0);
 	}
 }

@@ -4,15 +4,14 @@ const uint8_t MCP_OUTPUT_SS_PIN = 5;
 const uint8_t MCP_INPUT_INTERRUPT_PIN = 7;
 
 // ENCODERS
-const uint8_t ENC_NUM = 4;
-const uint8_t ENC_GPIO_PINS[ENC_NUM][2] =
-{
-	{7, 6},
-	{5, 4},
-	{3, 2},
-	{1, 0}
-};
-
+const uint8_t ENC_0_GPIO_A_PINS = 7;
+const uint8_t ENC_0_GPIO_B_PINS = 6;
+const uint8_t ENC_1_GPIO_A_PINS = 5;
+const uint8_t ENC_1_GPIO_B_PINS = 4;
+const uint8_t ENC_2_GPIO_A_PINS = 3;
+const uint8_t ENC_2_GPIO_B_PINS = 2;
+const uint8_t ENC_3_GPIO_A_PINS = 1;
+const uint8_t ENC_3_GPIO_B_PINS = 0;
 
 const uint8_t ENC_0_BTN_GPIO_PIN = 8;
 const uint8_t ENC_1_BTN_GPIO_PIN = 9;

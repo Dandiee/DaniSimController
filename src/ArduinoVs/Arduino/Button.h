@@ -33,9 +33,8 @@ public:
 		}
 	}
 	uint8_t pin = 0;
-
-private:
 	uint8_t lastKnownState = 0;
+private:
 	uint8_t cooldown = 0;
 	unsigned long lastChangedAt = 0;
 	buttonPressed onPressedCallback = nullptr;
