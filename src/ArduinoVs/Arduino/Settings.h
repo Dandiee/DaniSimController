@@ -13,7 +13,11 @@ const uint8_t ENC_GPIO_PINS[ENC_NUM][2] =
 	{1, 0}
 };
 
-const uint8_t ENC_BTN_GPIO_PINS[ENC_NUM] = { 8, 9, 10, 11 };
+
+const uint8_t ENC_0_BTN_GPIO_PIN = 8;
+const uint8_t ENC_1_BTN_GPIO_PIN = 9;
+const uint8_t ENC_2_BTN_GPIO_PIN = 10;
+const uint8_t ENC_3_BTN_GPIO_PIN = 11;
 
 // DISPLAYS
 const uint8_t DIS_CLK_PIN = 2;
@@ -27,7 +31,8 @@ const uint8_t DIS_3_0_DIO_PIN = 8;
 const uint8_t DIS_3_1_DIO_PIN = 12;
 
 // BUTTONS
-const uint8_t BTN_GPIO_PINS[] = { 12, 13 };
+const uint8_t BTN_0_GPIO_PIN = 12;
+const uint8_t BTN_1_GPIO_PIN = 13;
 
 // LEDS
 const uint8_t LED_0_GPIO_PIN = 2;

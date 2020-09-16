@@ -1,3 +1,4 @@
+#include "Button.h"
 #include "Settings.h"
 #include "Mcp/McpSettings.h"
 #include "Mcp/Mcp.h"
@@ -8,6 +9,7 @@
 #include "SimController.h"
 
 void onEncoderChanged(int8_t change, byte id, int value);
+void onButtonPressed(Button sender);
 void onSimStateChanged(byte key, int value);
 
 SimController simController = SimController(onSimStateChanged);
@@ -48,6 +50,13 @@ Display displays[] =
   Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN),
 };
 
+Button encoderButton1 = Button(ENC_0_BTN_GPIO_PIN, onButtonPressed);
+Button encoderButton2 = Button(ENC_1_BTN_GPIO_PIN, onButtonPressed);
+Button encoderButton3 = Button(ENC_2_BTN_GPIO_PIN, onButtonPressed);
+Button encoderButton4 = Button(ENC_3_BTN_GPIO_PIN, onButtonPressed);
+Button button1 = Button(BTN_0_GPIO_PIN, onButtonPressed);
+Button button2 = Button(BTN_1_GPIO_PIN, onButtonPressed);
+
 byte numberOfDisplays = sizeof(displays) / sizeof(displays[0]);
 const byte panicButtonPin = 4;
 
@@ -61,8 +70,7 @@ volatile byte interruptsCountB = 0;
 
 bool isWriting = false;
 
-Encoder encoders[4];
-
+Encoder encoders[ENC_NUM];
 
 void setup()
 {
@@ -86,27 +94,21 @@ void checkInterrupts()
 	if (isExpanderInterrupted)
 	{
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
-		// Serial.println("INTERRUPTED");
-
-		uint16_t prevGpio = mcpInput.getLastKnownGpio();
 		uint16_t gpio = mcpInput.readGpio();
 		
-		for (uint8_t i = 0; i < 16; i++)
+		for (uint8_t i = 0; i < ENC_NUM; i++)
 		{
-			bool prevPin = prevGpio & (1 << i);
-			bool nextPin = gpio & (1 << i);
-
-			if (prevPin != nextPin) {
-
-			}
+			encoders[i].process(
+				bitRead(gpio, encoders[i].pinA), 
+				bitRead(gpio, encoders[i].pinB));
 		}
 
-		for (int j = 0; j < ENC_NUM; j++)
-		{
-			encoders[j].process(
-				bitRead(gpio, encoders[j].pinA), 
-				bitRead(gpio, encoders[j].pinB));
-		}
+		encoderButton1.checkState(gpio);
+		encoderButton2.checkState(gpio);
+		encoderButton3.checkState(gpio);
+		encoderButton4.checkState(gpio);
+		button1.checkState(gpio);
+		button2.checkState(gpio);
 
 		isExpanderInterrupted = false;
 		attachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN), onExpanderInterrupt, FALLING);
@@ -190,4 +192,12 @@ void onSimStateChanged(byte key, int value)
 void onExpanderInterrupt()
 {
 	isExpanderInterrupted = true;
+}
+
+void onButtonPressed(Button sender)
+{
+	if (sender.pin == ENC_0_BTN_GPIO_PIN)
+	{
+		displays[0].showNumberDec(0, 0, 4, 0);
+	}
 }
