@@ -13,56 +13,64 @@
 #define R_CCW_FINAL  0b0101
 #define R_CCW_NEXT   0b0110
 
-const byte stateTable[][4] = 
+const byte stateTable[][4] =
 {
-  // 00         01           10           11
-  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
-  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
-  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
-  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
-  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
-  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
-  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
+	// 00         01           10           11
+	{R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
+	{R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
+	{R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
+	{R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
+	{R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
+	{R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
+	{R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
 };
 
-typedef void (*encoderCallback)(int8_t change, byte id, int value);
-class Encoder 
+typedef void (*encoderCallback)(int8_t change, uint8_t id, int value);
+class Encoder
 {
-  public:
-    Encoder(byte pinA, byte pinB, byte id, encoderCallback callback = nullptr)
-    : pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) { }
+public:
+	Encoder() { }
+	Encoder(uint8_t pinA, uint8_t pinB, uint8_t id, encoderCallback callback = nullptr)
+		: pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) { }
 
-    byte process(byte gpioState) 
-    {
-      byte pinAState = bitRead(gpioState, pinA);
-      byte pinBState = bitRead(gpioState, pinB);
-      
-      byte pinState = (pinAState << 1) | pinBState;
-      state = stateTable[state & 0b00001111][pinState]; 
-      byte result = (state & 0b00110000);
+	uint8_t process(uint8_t a, uint8_t b)
+	{
+		if (a != stateA || b != stateB)
+		{
+			stateA = a;
+			stateB = b;
 
-      if (result)
-      {
-        int8_t change = result== DIR_CW ? -1 : 1;
-        value += change;
-        if (callback)
-        {
-          callback(change, id, value);      
-        }
-      }
+			uint8_t pinState = (a << 1) | b;
+			state = stateTable[state & 0b00001111][pinState];
+			uint8_t result = (state & 0b00110000);
 
-      return result;
-    }
+			if (result)
+			{
+				int8_t change = result == DIR_CW ? -1 : 1;
+				value += change;
+				if (callback)
+				{
+					callback(change, id, value);
+				}
+			}
 
-  int value = 0;
-    byte pinA = 0;
-    byte pinB = 0;
-  private:
-    
-    byte id = 0;
-    encoderCallback callback = nullptr;
-    byte state = 0;
-    
+			return result;
+		}
+
+		return 0;
+	}
+
+	int value = 0;
+	uint8_t pinA = 0;
+	uint8_t pinB = 0;
+private:
+
+	uint8_t id = 0;
+	encoderCallback callback = nullptr;
+	uint8_t state = 0;
+	uint8_t stateA = 1;
+	uint8_t stateB = 1;
+
 };
 
 #endif

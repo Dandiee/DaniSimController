@@ -12,15 +12,6 @@ void onSimStateChanged(byte key, int value);
 
 SimController simController = SimController(onSimStateChanged);
 
-Encoder encoders[] =
-{
-  Encoder(0, 1, 1, onEncoderChanged),
-  Encoder(2, 3, 2, onEncoderChanged),
-  Encoder(4, 5, 3, onEncoderChanged),
-  Encoder(6, 7, 4, onEncoderChanged)
-};
-
-byte numberOfEncoders = sizeof(encoders) / sizeof(encoders[0]);
 
 
 Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
@@ -45,17 +36,16 @@ volatile bool isExpanderInterrupted = false;
 
 int potentiometers[] = { 0 };
 
-const byte commonDisplayClkPin = 2;
 Display displays[] =
 {
-  Display(commonDisplayClkPin, 3),
-  Display(commonDisplayClkPin, 4),
-  Display(commonDisplayClkPin, 8),
-  Display(commonDisplayClkPin, 9),
-  Display(commonDisplayClkPin, 10),
-  Display(commonDisplayClkPin, 11),
-  Display(commonDisplayClkPin, 12),
-  Display(commonDisplayClkPin, 13),
+  Display(DIS_CLK_PIN, DIS_0_0_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_0_1_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_1_0_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_1_1_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_2_0_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_2_1_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_3_0_DIO_PIN),
+  Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN),
 };
 
 byte numberOfDisplays = sizeof(displays) / sizeof(displays[0]);
@@ -71,6 +61,9 @@ volatile byte interruptsCountB = 0;
 
 bool isWriting = false;
 
+Encoder encoders[4];
+
+
 void setup()
 {
 	Serial.begin(9600);
@@ -79,6 +72,10 @@ void setup()
 	SPI.begin();
 	mcpInput.begin();
 	mcpOutput.begin();
+
+	for (uint8_t i = 0; i < ENC_NUM; i++) {
+		encoders[i] = Encoder(ENC_GPIO_PINS[i][0], ENC_GPIO_PINS[i][1], i, onEncoderChanged);
+	}
 
 	Serial.println("kickin");
 	//Gamepad.begin();
@@ -89,11 +86,26 @@ void checkInterrupts()
 	if (isExpanderInterrupted)
 	{
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
-		Serial.println("INTERRUPTED");
-		uint16_t nextInterrupt = mcpInput.readGpio();
-		for (int j = 0; j < numberOfEncoders; j++)
+		// Serial.println("INTERRUPTED");
+
+		uint16_t prevGpio = mcpInput.getLastKnownGpio();
+		uint16_t gpio = mcpInput.readGpio();
+		
+		for (uint8_t i = 0; i < 16; i++)
 		{
-			encoders[j].process(nextInterrupt);
+			bool prevPin = prevGpio & (1 << i);
+			bool nextPin = gpio & (1 << i);
+
+			if (prevPin != nextPin) {
+
+			}
+		}
+
+		for (int j = 0; j < ENC_NUM; j++)
+		{
+			encoders[j].process(
+				bitRead(gpio, encoders[j].pinA), 
+				bitRead(gpio, encoders[j].pinB));
 		}
 
 		isExpanderInterrupted = false;
@@ -104,33 +116,18 @@ void checkInterrupts()
 long c = 0;
 void loop()
 {
-	for (byte i = 0; i < 4; i++)
-	{
-		displays[i].showNumberDec(encoders[i].value, false, 4, 0);
-		checkInterrupts();
-		displays[i + 4].showNumberDec(encoders[i].value + 1, false, 4, 0);
-		checkInterrupts();
-	}
-
-
+	
 	if (((millis() / 1000) % 2 == 0))
 	{
-		mcpOutput.writePin(7, HIGH);
-		mcpOutput.writePin(5, HIGH);
-		mcpOutput.writePin(6, LOW);
-		mcpOutput.writePin(4, LOW);
+		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
+		mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
 
 	}
 	else
 	{
-		mcpOutput.writePin(7, LOW);
-		mcpOutput.writePin(5, LOW);
-		mcpOutput.writePin(6, HIGH);
-		mcpOutput.writePin(4, HIGH);
+		mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
 	}
-
-	//Serial.println(expander.readAndReset());
-	//Serial.println(expander2.readAndReset());
 
 	checkInterrupts();
 
@@ -172,8 +169,11 @@ void writeBinary(uint16_t doubleByte) {
 	//Serial.println();
 }
 
-void onEncoderChanged(int8_t change, byte id, int value)
+void onEncoderChanged(int8_t change, uint8_t id, int value)
 {
+	displays[id * 2].showNumberDec(encoders[id].value, false, 4, 0);
+	displays[id * 2 + 1].showNumberDec(encoders[id].value + 1, false, 4, 0);
+	
 	Serial.print(id);
 	Serial.print(":");
 	Serial.print(change);

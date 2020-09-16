@@ -85,6 +85,10 @@ public:
 		
 	}
 
+	uint16_t getLastKnownGpio() {
+		return _lastKnownGpio;
+	}
+
 	uint16_t readGpio() {
 		digitalWrite(_slaveSelectorPin, LOW);
 		SPI.transfer((EXP << 1) | 1);
