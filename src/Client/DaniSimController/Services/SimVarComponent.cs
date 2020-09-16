@@ -41,6 +41,7 @@ namespace DaniSimController.Services
 
         public void Connect(HwndSource hwndSource)
         {
+            // Gracefully wait for simconnect to start
             _simConnect = new SimConnect("Dani", hwndSource.Handle, 0x0402, null, 0);
             _simConnect.OnRecvOpen += (_, __) =>
             {

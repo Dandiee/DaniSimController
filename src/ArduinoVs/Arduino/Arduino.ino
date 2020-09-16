@@ -105,31 +105,9 @@ void checkInterrupts()
 
 void loop()
 {
-	if (((millis() / 1000) % 2 == 0))
-	{
-		mcpOutput.writePin(LED_1_GPIO_PIN, HIGH);
-		mcpOutput.writePin(LED_3_GPIO_PIN, HIGH);
-		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
-
-		mcpOutput.writePin(LED_0_GPIO_PIN, LOW);
-		mcpOutput.writePin(LED_2_GPIO_PIN, LOW);
-		mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
-	}
-	else
-	{
-		mcpOutput.writePin(LED_1_GPIO_PIN, LOW);
-		mcpOutput.writePin(LED_3_GPIO_PIN, LOW);
-		mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
-
-		mcpOutput.writePin(LED_0_GPIO_PIN, HIGH);
-		mcpOutput.writePin(LED_2_GPIO_PIN, HIGH);
-		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
-	}
-
-	
 	checkInterrupts();
+	simController.readSerial();
 	sendGamepadReport();
-	// simController.readSerial();
 }
 
 void sendGamepadReport()
@@ -166,7 +144,11 @@ void onEncoderChanged(int8_t change, uint8_t id, int value)
 
 void onSimStateChanged(byte key, int value)
 {
-	
+	if (key == 0)
+	{
+    Serial.println("Callback execed with value: " + String(value));
+		mcpOutput.writePin(8, value == 1 ? HIGH : LOW);
+	}
 }
 
 void onExpanderInterrupt()

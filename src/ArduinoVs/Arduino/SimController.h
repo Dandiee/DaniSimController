@@ -19,7 +19,7 @@ class SimController
       while (Serial.available() > 0)
       {
         char currentChar = Serial.read();
-        
+        Serial.print(currentChar);
         if (isProcessingIncomingData)
         {
           if (currentChar == endOfCommandCharacter)
@@ -57,6 +57,7 @@ class SimController
       int prevValue = state[key];
       if (prevValue != value)
       {
+        Serial.println("Key: " + String(key) + " Value: " + String(value));
         state[key] = value;  
         callback(key, value);
       }
