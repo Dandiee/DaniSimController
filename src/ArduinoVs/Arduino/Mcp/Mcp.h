@@ -101,21 +101,25 @@ public:
 	}
 
 	void writePin(uint8_t pin, bool value) {
-		uint16_t word = 0;
-		bitWrite(word, pin, value);
-		writeGpio(word);
+		uint16_t word = _lastKnownGpio;
+		if (bitRead(word, pin) != value)
+		{
+			bitWrite(word, pin, value);
+			writeGpio(word);
+		}
 	}
-
-private:
-	McpSettings _settings;
-	uint8_t _slaveSelectorPin;
-	uint16_t _lastKnownGpio;
 
 	void writeGpio(uint16_t value) {
 		writeWord(GPIOA, value);
 		_lastKnownGpio = value;
 	}
 
+
+private:
+	McpSettings _settings;
+	uint8_t _slaveSelectorPin;
+	uint16_t _lastKnownGpio;
+	
 	void writeByte(uint8_t registerAddress, uint8_t value) {
 		digitalWrite(_slaveSelectorPin, LOW);
 		SPI.transfer(EXP << 1);

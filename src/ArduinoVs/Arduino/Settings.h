@@ -34,12 +34,12 @@ const uint8_t BTN_0_GPIO_PIN = 12;
 const uint8_t BTN_1_GPIO_PIN = 13;
 
 // LEDS
-const uint8_t LED_0_GPIO_PIN = 2;
-const uint8_t LED_1_GPIO_PIN = 3;
-const uint8_t LED_2_GPIO_PIN = 4;
-const uint8_t LED_3_GPIO_PIN = 5;
-const uint8_t LED_4_GPIO_PIN = 6;
-const uint8_t LED_5_GPIO_PIN = 7;
+const uint8_t LED_0_GPIO_PIN = 0;
+const uint8_t LED_1_GPIO_PIN = 1;
+const uint8_t LED_2_GPIO_PIN = 2;
+const uint8_t LED_3_GPIO_PIN = 3;
+const uint8_t LED_4_GPIO_PIN = 8;
+const uint8_t LED_5_GPIO_PIN = 9;
 
 // POT
 const uint8_t POT_0_PIN = A0;

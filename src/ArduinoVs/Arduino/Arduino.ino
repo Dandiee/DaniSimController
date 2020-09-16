@@ -26,9 +26,11 @@ Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
 .withIconHardwareAddress(1).build();
 
 Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
-.withIconMirror(1)
-.withIconSequentialOperation(1)
-.withIconHardwareAddress(1)
+.withPinDirections(0x0000)
+.withPullUps(0x0000)
+.withIconMirror(0)
+.withIconSequentialOperation(0)
+.withIconHardwareAddress(0)
 .build();
 
 volatile bool isExpanderInterrupted = false;
@@ -71,7 +73,7 @@ void setup()
 	mcpOutput.begin();
 
 	Serial.println("kickin");
-	//Gamepad.begin();
+	Gamepad.begin();
 }
 
 void checkInterrupts()
@@ -80,6 +82,8 @@ void checkInterrupts()
 	{
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
 		uint16_t gpio = mcpInput.readGpio();
+
+		// Serial.println("INTERRUPT");
 
 		encoder1.process(gpio);
 		encoder2.process(gpio);
@@ -107,67 +111,44 @@ void loop()
 		mcpOutput.writePin(LED_3_GPIO_PIN, HIGH);
 		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
 
-		// mcpOutput.writePin(LED_0_GPIO_PIN, LOW);
-		// mcpOutput.writePin(LED_2_GPIO_PIN, LOW);
-		// mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_0_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_2_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
 	}
 	else
 	{
-		//mcpOutput.writePin(LED_1_GPIO_PIN, LOW);
-		//mcpOutput.writePin(LED_3_GPIO_PIN, LOW);
-		//mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_1_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_3_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
 
 		mcpOutput.writePin(LED_0_GPIO_PIN, HIGH);
 		mcpOutput.writePin(LED_2_GPIO_PIN, HIGH);
 		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
 	}
 
+	
 	checkInterrupts();
-
 	sendGamepadReport();
-
-	/*checkInterrupts();
-
-	if (digitalRead(panicButtonPin) == LOW)
-	{
-	  Serial.println("Debug pressed, please wait...");
-	  uint16_t gpioState = expander.readAndReset();
-	  writeBinary(gpioState);
-	  delay(500);
-	  Serial.println("Okay, good to go");
-	}*/
-
-	/*uint16_t exp2Io = expander2.readAndReset();
-	if (expander2GpioValue != exp2Io)
-	{
-	  writeBinary(exp2Io);
-	  expander2GpioValue = exp2Io;
-	}*/
-
-	//simController.readSerial();
-
-
+	// simController.readSerial();
 }
 
 void sendGamepadReport()
 {
-	//display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
-	display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
-	display3.showNumberDec(pot2.readAndGetValue(), 0, 4, 0);
-	display5.showNumberDec(pot3.readAndGetValue(), 0, 4, 0);
-	display7.showNumberDec(pot4.readAndGetValue(), 0, 4, 0);
+	Gamepad.buttons(
+		encoderButton1.lastKnownState
+		| encoderButton2.lastKnownState << 1
+		| encoderButton3.lastKnownState << 2
+		| encoderButton4.lastKnownState << 3
+		| button1.lastKnownState << 4
+		| button2.lastKnownState << 5);
 
-	display2.showNumberDec(pot5.readAndGetValue(), 0, 4, 0);
-	//Serial.print((analogRead(POT_1_PIN) * 64) - 32768); Serial.print("/");
-	//Serial.print((analogRead(POT_2_PIN) * 64) - 32768); Serial.print("/");
-	//Serial.print((analogRead(POT_3_PIN) * 64) - 32768); Serial.print("/");
-	//Serial.print((analogRead(POT_4_PIN) * 64) - 32768);
-	/*
-	Gamepad.xAxis((analogRead(POT_0_PIN) * 64) - 32768);
-	Gamepad.yAxis((analogRead(POT_1_PIN) * 64) - 32768);
-	Gamepad.zAxis((analogRead(POT_2_PIN) * 64) - 32768);
-	Gamepad.rxAxis((analogRead(POT_3_PIN) * 64) - 32768);
-	Gamepad.ryAxis((analogRead(POT_4_PIN) * 64) - 32768);*/
+	Gamepad.xAxis(pot5.readAndGetValue()); // linear slider
+
+	Gamepad.zAxis(pot1.readAndGetValue()); // -128 -> 128
+
+	Gamepad.yAxis(pot2.readAndGetValue());
+	Gamepad.rxAxis(pot3.readAndGetValue());
+	Gamepad.ryAxis(pot4.readAndGetValue());
 
 	Gamepad.write();
 }
@@ -175,12 +156,12 @@ void sendGamepadReport()
 
 void onEncoderChanged(int8_t change, uint8_t id, int value)
 {
-	Serial.print(id);
+	/*Serial.print(id);
 	Serial.print(":");
 	Serial.print(change);
 	Serial.print(" (");
 	Serial.print(value);
-	Serial.println(")");
+	Serial.println(")");*/
 }
 
 void onSimStateChanged(byte key, int value)
@@ -195,5 +176,5 @@ void onExpanderInterrupt()
 
 void onButtonPressed(Button sender)
 {
-	
+	//Serial.println("Pressed: " + String(sender.pin));
 }
