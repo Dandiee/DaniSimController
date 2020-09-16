@@ -42,8 +42,8 @@ const uint8_t LED_4_GPIO_PIN = 6;
 const uint8_t LED_5_GPIO_PIN = 7;
 
 // POT
-const uint8_t POT_0_PIN = 0;
-const uint8_t POT_1_PIN = 1;
-const uint8_t POT_2_PIN = 2;
-const uint8_t POT_3_PIN = 3;
-const uint8_t POT_4_PIN = 4;
+const uint8_t POT_0_PIN = A0;
+const uint8_t POT_1_PIN = A1;
+const uint8_t POT_2_PIN = A2;
+const uint8_t POT_3_PIN = A3;
+const uint8_t POT_4_PIN = A4;

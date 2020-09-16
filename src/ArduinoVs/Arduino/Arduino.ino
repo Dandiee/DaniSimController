@@ -1,3 +1,4 @@
+#include "Potentiometer.h"
 #include "Button.h"
 #include "Settings.h"
 #include "Mcp/McpSettings.h"
@@ -15,20 +16,20 @@ void onSimStateChanged(byte key, int value);
 SimController simController = SimController(onSimStateChanged);
 
 Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
-	.withPinDirections(0xFFFF)
-	.withPullUps(0xFFFF)
-	.withIoPolarity(0xFFFF)
-	.withInterrupts(0xFFFF)
-	.withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
-	.withIconMirror(1)
-	.withIconSequentialOperation(1)
-	.withIconHardwareAddress(1).build();
+.withPinDirections(0xFFFF)
+.withPullUps(0xFFFF)
+.withIoPolarity(0xFFFF)
+.withInterrupts(0xFFFF)
+.withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
+.withIconMirror(1)
+.withIconSequentialOperation(1)
+.withIconHardwareAddress(1).build();
 
 Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
-	.withIconMirror(1)
-	.withIconSequentialOperation(1)
-	.withIconHardwareAddress(1)
-	.build();
+.withIconMirror(1)
+.withIconSequentialOperation(1)
+.withIconHardwareAddress(1)
+.build();
 
 volatile bool isExpanderInterrupted = false;
 
@@ -54,6 +55,12 @@ Encoder encoder2 = Encoder(ENC_1_GPIO_A_PINS, ENC_1_GPIO_B_PINS, 2, onEncoderCha
 Encoder encoder3 = Encoder(ENC_2_GPIO_A_PINS, ENC_2_GPIO_B_PINS, 3, onEncoderChanged);
 Encoder encoder4 = Encoder(ENC_3_GPIO_A_PINS, ENC_3_GPIO_B_PINS, 4, onEncoderChanged);
 
+Potentiometer pot1 = Potentiometer(POT_0_PIN, -128, 128);
+Potentiometer pot2 = Potentiometer(POT_1_PIN, -32768, 32768);
+Potentiometer pot3 = Potentiometer(POT_2_PIN, -32768, 32768);
+Potentiometer pot4 = Potentiometer(POT_3_PIN, -32768, 32768);
+Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768);
+
 void setup()
 {
 	Serial.begin(9600);
@@ -73,7 +80,7 @@ void checkInterrupts()
 	{
 		detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
 		uint16_t gpio = mcpInput.readGpio();
-		
+
 		encoder1.process(gpio);
 		encoder2.process(gpio);
 		encoder3.process(gpio);
@@ -83,6 +90,7 @@ void checkInterrupts()
 		encoderButton2.checkState(gpio);
 		encoderButton3.checkState(gpio);
 		encoderButton4.checkState(gpio);
+
 		button1.checkState(gpio);
 		button2.checkState(gpio);
 
@@ -95,16 +103,28 @@ void loop()
 {
 	if (((millis() / 1000) % 2 == 0))
 	{
-		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
-		mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
+		mcpOutput.writePin(LED_1_GPIO_PIN, HIGH);
+		mcpOutput.writePin(LED_3_GPIO_PIN, HIGH);
+		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
+
+		// mcpOutput.writePin(LED_0_GPIO_PIN, LOW);
+		// mcpOutput.writePin(LED_2_GPIO_PIN, LOW);
+		// mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
 	}
 	else
 	{
-		mcpOutput.writePin(LED_4_GPIO_PIN, LOW);
-		mcpOutput.writePin(LED_5_GPIO_PIN, HIGH);
+		//mcpOutput.writePin(LED_1_GPIO_PIN, LOW);
+		//mcpOutput.writePin(LED_3_GPIO_PIN, LOW);
+		//mcpOutput.writePin(LED_5_GPIO_PIN, LOW);
+
+		mcpOutput.writePin(LED_0_GPIO_PIN, HIGH);
+		mcpOutput.writePin(LED_2_GPIO_PIN, HIGH);
+		mcpOutput.writePin(LED_4_GPIO_PIN, HIGH);
 	}
-	
+
 	checkInterrupts();
+
+	sendGamepadReport();
 
 	/*checkInterrupts();
 
@@ -126,23 +146,32 @@ void loop()
 
 	//simController.readSerial();
 
-	//sendGamepadReport();
+
 }
 
 void sendGamepadReport()
 {
-	//Gamepad.xAxis( (analogRead(A5) * 64) - 32768);
-	Gamepad.xAxis(100);
+	//display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
+	display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
+	display3.showNumberDec(pot2.readAndGetValue(), 0, 4, 0);
+	display5.showNumberDec(pot3.readAndGetValue(), 0, 4, 0);
+	display7.showNumberDec(pot4.readAndGetValue(), 0, 4, 0);
+
+	display2.showNumberDec(pot5.readAndGetValue(), 0, 4, 0);
+	//Serial.print((analogRead(POT_1_PIN) * 64) - 32768); Serial.print("/");
+	//Serial.print((analogRead(POT_2_PIN) * 64) - 32768); Serial.print("/");
+	//Serial.print((analogRead(POT_3_PIN) * 64) - 32768); Serial.print("/");
+	//Serial.print((analogRead(POT_4_PIN) * 64) - 32768);
+	/*
+	Gamepad.xAxis((analogRead(POT_0_PIN) * 64) - 32768);
+	Gamepad.yAxis((analogRead(POT_1_PIN) * 64) - 32768);
+	Gamepad.zAxis((analogRead(POT_2_PIN) * 64) - 32768);
+	Gamepad.rxAxis((analogRead(POT_3_PIN) * 64) - 32768);
+	Gamepad.ryAxis((analogRead(POT_4_PIN) * 64) - 32768);*/
+
 	Gamepad.write();
 }
 
-void writeBinary(uint16_t doubleByte) {
-	for (byte i = 0; i < 16; i++)
-	{
-		Serial.print(bitRead(doubleByte, i));
-	}
-	//Serial.println();
-}
 
 void onEncoderChanged(int8_t change, uint8_t id, int value)
 {
@@ -156,7 +185,7 @@ void onEncoderChanged(int8_t change, uint8_t id, int value)
 
 void onSimStateChanged(byte key, int value)
 {
-	// displays[0].showNumberDec(value, false, 4, 0);
+	
 }
 
 void onExpanderInterrupt()
@@ -166,9 +195,5 @@ void onExpanderInterrupt()
 
 void onButtonPressed(Button sender)
 {
-	if (sender.pin == ENC_0_BTN_GPIO_PIN)
-	{
-		// displays[0].showNumberDec(0, 0, 4, 0);
-		display1.showNumberDec(0, 0, 4, 0);
-	}
+	
 }

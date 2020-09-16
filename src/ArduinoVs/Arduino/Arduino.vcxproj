@@ -112,6 +112,7 @@
     <ClInclude Include="Mcp\McpSettings.h" />
     <ClInclude Include="Mcp\Mcp.h" />
     <ClInclude Include="Mcp\McpBuilder.h" />
+    <ClInclude Include="Potentiometer.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimController.h" />
     <ClInclude Include="__vm\.Arduino.vsarduino.h" />
