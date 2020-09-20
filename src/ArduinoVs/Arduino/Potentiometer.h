@@ -5,6 +5,11 @@
 
 const uint8_t POTENTIOMETER_MEASURES = 8;
 
+struct potValues {
+	uint16_t value;
+	uint8_t count;
+};
+
 class Potentiometer
 {
 public:
@@ -14,32 +19,25 @@ public:
 		_rangeMin = rangeMin;
 		_rangeMax = rangeMax;
 
-		for (uint8_t i = 0; i < POTENTIOMETER_MEASURES; i++)
-		{
-			lastReadings[i] = 0;
+		int currentValue = analogRead(analogPin);
+
+		for (uint8_t i = 0; i < POTENTIOMETER_MEASURES; i++) {
+			readings[i] = currentValue;
 		}
+
+		_rollingTotal = currentValue * POTENTIOMETER_MEASURES;
+		cursor = POTENTIOMETER_MEASURES - 1;
 	}
 
 	long readAndGetValue() {
 
 		int currentValue = analogRead(pin);
-		int originalValue = 0;
+		cursor = (cursor + 1) % POTENTIOMETER_MEASURES;
+		_rollingTotal = _rollingTotal + currentValue - readings[cursor];
+		rawValue = _rollingTotal / POTENTIOMETER_MEASURES;
+		readings[cursor] = currentValue;
 
-		lastReadings[cursor] = currentValue;
-		uint16_t total = lastReadings[0];
-		for (uint8_t i = 1; i < POTENTIOMETER_MEASURES; i++) {
-			total += lastReadings[i];
-		}
-
-		uint16_t avg = total / POTENTIOMETER_MEASURES;
-		if (abs(avg - rawValue) > 1)
-		{
-			rawValue = avg;
-			value = map(rawValue, 0, 1024, _rangeMin, _rangeMax);
-		}
-		cursor = cursor == POTENTIOMETER_MEASURES - 1 ? 0 : cursor + 1;
-
-		return value;
+		return rawValue;
 	}
 
 
@@ -47,12 +45,17 @@ public:
 	uint16_t rawValue;
 
 private:
-	uint16_t lastReadings[POTENTIOMETER_MEASURES];
+	uint16_t readings[POTENTIOMETER_MEASURES];
+	
 	uint8_t cursor = 0;
 	uint8_t pin = 0;
+	
+	uint32_t _rollingTotal = 0;
+	
 	long _rangeMin = 0;
 	long _rangeMax = 0;
 };
+
 
 
 #endif

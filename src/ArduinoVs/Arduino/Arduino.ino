@@ -73,7 +73,7 @@ void setup()
   mcpOutput.begin();
 
   Serial.println("kickin");
-  Gamepad.begin();
+  //Gamepad.begin();
 }
 
 void checkInterrupts()
@@ -107,7 +107,19 @@ void loop()
 {
   checkInterrupts();
   simController.readSerial();
-  sendGamepadReport();
+  testAnalogReads();
+  //sendGamepadReport();
+}
+
+void testAnalogReads() {
+    
+    /*display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
+    display3.showNumberDec(pot2.readAndGetValue(), 0, 4, 0);
+    display5.showNumberDec(pot3.readAndGetValue(), 0, 4, 0);
+    display7.showNumberDec(pot4.readAndGetValue(), 0, 4, 0);*/
+
+    display2.showNumberDec(pot5.readAndGetValue(), 0, 4, 0);
+
 }
 
 void sendGamepadReport()
