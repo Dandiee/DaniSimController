@@ -7,7 +7,7 @@ class McpBuilder
 {
 public:
 
-	McpBuilder::McpBuilder(uint8_t slaveSelectorPin)
+	McpBuilder(uint8_t slaveSelectorPin)
 		: _settings(slaveSelectorPin) { }
 
 	#pragma region ICON settings builders

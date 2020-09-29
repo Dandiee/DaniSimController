@@ -3,60 +3,85 @@
 #ifndef _POTENTIOMETER_h
 #define _POTENTIOMETER_h
 
-const uint8_t POTENTIOMETER_MEASURES = 8;
-
-struct potValues {
-	uint16_t value;
-	uint8_t count;
-};
+const uint8_t POTENTIOMETER_MEASURES = 32;
 
 class Potentiometer
 {
 public:
 
-	Potentiometer(uint8_t analogPin, long rangeMin, long rangeMax) {
-		pin = analogPin;
-		_rangeMin = rangeMin;
-		_rangeMax = rangeMax;
+  Potentiometer(uint8_t analogPin, long rangeMin, long rangeMax) 
+  : _pin(analogPin), _value(0), _cursor(0), _rollingTotal(0)
+  { 
+    _rangeMin = rangeMin;
+    _rangeMax = rangeMax;
+  }
 
-		int currentValue = analogRead(analogPin);
+  bool readAndGetValue() {
 
-		for (uint8_t i = 0; i < POTENTIOMETER_MEASURES; i++) {
-			readings[i] = currentValue;
-		}
+    int currentValue = analogRead(_pin);
+    _cursor = (_cursor + 1) % POTENTIOMETER_MEASURES;
+    uint16_t valueToRemove = _readings[_cursor];
+    _rollingTotal = _rollingTotal + currentValue - valueToRemove;
+    _readings[_cursor] = currentValue;
 
-		_rollingTotal = currentValue * POTENTIOMETER_MEASURES;
-		cursor = POTENTIOMETER_MEASURES - 1;
-	}
+    uint16_t newValue = _rollingTotal / POTENTIOMETER_MEASURES;
+    if (abs(newValue - _value) > 2) {
+      _value = newValue;  
+      mappedValue = map(_value, 0, 1024, _rangeMin, _rangeMax);
+      return true;
+    }
 
-	long readAndGetValue() {
+    return false;
+    
+    
+        /*
+        bool isRemoving = false;
+        bool isShifting = false;
+        uint16_t moveToNext = 0;
 
-		int currentValue = analogRead(pin);
-		cursor = (cursor + 1) % POTENTIOMETER_MEASURES;
-		_rollingTotal = _rollingTotal + currentValue - readings[cursor];
-		rawValue = _rollingTotal / POTENTIOMETER_MEASURES;
-		readings[cursor] = currentValue;
+        for (uint8_t i = 0; i < POTENTIOMETER_MEASURES; i++)
+        {
+            if (!isRemoving && _sorted[i] == valueToRemove)
+            {
+                isRemoving = true;
+            }
 
-		return rawValue;
-	}
+            if (isRemoving)
+            {
+                _sorted[i] = POTENTIOMETER_MEASURES - 1 == i ? 0 : _sorted[i + 1];
+            }
 
+            if (!isShifting && (_sorted[i] > _value || i == POTENTIOMETER_MEASURES - 1))
+            {
+                moveToNext = _value;
+                isShifting = true;
+            }
 
-	long value;
-	uint16_t rawValue;
+            if (isShifting)
+            {
+                uint16_t temp = moveToNext;
+                moveToNext = _sorted[i];
+                _sorted[i] = temp;
+            }
+        }*/
 
+    
+    return _value;
+  }
+  uint8_t _pin = 0;
+  uint16_t _value;
+  int16_t  mappedValue;
 private:
-	uint16_t readings[POTENTIOMETER_MEASURES];
-	
-	uint8_t cursor = 0;
-	uint8_t pin = 0;
-	
-	uint32_t _rollingTotal = 0;
-	
-	long _rangeMin = 0;
-	long _rangeMax = 0;
+  
+  long _rangeMin = 0;
+  long _rangeMax = 0;
+  
+  uint16_t _readings[POTENTIOMETER_MEASURES];
+ uint16_t _sorted[POTENTIOMETER_MEASURES];
+  uint8_t _cursor = 0;
+  uint32_t _rollingTotal = 0;
 };
 
 
 
 #endif
-

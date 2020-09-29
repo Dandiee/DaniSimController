@@ -4,38 +4,43 @@
 #include "Mcp/McpSettings.h"
 #include "Mcp/Mcp.h"
 #include "Mcp/McpBuilder.h"
-#include <HID-Project.h>
 #include "Encoder.h"
-#include "Display.h"
+// #include "Display.h"
 #include "SimController.h"
+#include <HID-Project.h>
 
 void onEncoderChanged(int8_t change, byte id, int value);
 void onButtonPressed(Button sender);
 void onSimStateChanged(byte key, int value);
 
-SimController simController = SimController(onSimStateChanged);
+
+//SimController simController = SimController(onSimStateChanged);
+
 
 Mcp mcpInput = McpBuilder(MCP_INPUT_SS_PIN)
-.withPinDirections(0xFFFF)
-.withPullUps(0xFFFF)
-.withIoPolarity(0xFFFF)
-.withInterrupts(0xFFFF)
-.withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
-.withIconMirror(1)
-.withIconSequentialOperation(1)
-.withIconHardwareAddress(1).build();
+  .withPinDirections(0xFFFF)
+  .withPullUps(0xFFFF)
+  .withIoPolarity(0xFFFF)
+  //.withInterrupts(0xFFFF)-- I'll just poll read the gpio state
+  .withInterrupts(0x0000)
+  .withInterruptPin(MCP_INPUT_INTERRUPT_PIN)
+  .withIconMirror(1)
+  .withIconSequentialOperation(1)
+  .withIconHardwareAddress(1)
+  .build();
 
 Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
-.withPinDirections(0x0000)
-.withPullUps(0x0000)
-.withIconMirror(0)
-.withIconSequentialOperation(0)
-.withIconHardwareAddress(0)
-.build();
+  .withPinDirections(0x0000)
+  .withPullUps(0x0000)
+  .withIconMirror(0)
+  .withIconSequentialOperation(0)
+  .withIconHardwareAddress(0)
+  .build();
+
 
 volatile bool isExpanderInterrupted = false;
 
-
+/*
 Display display1 = Display(DIS_CLK_PIN, DIS_0_0_DIO_PIN);
 Display display2 = Display(DIS_CLK_PIN, DIS_0_1_DIO_PIN);
 Display display3 = Display(DIS_CLK_PIN, DIS_1_0_DIO_PIN);
@@ -43,7 +48,7 @@ Display display4 = Display(DIS_CLK_PIN, DIS_1_1_DIO_PIN);
 Display display5 = Display(DIS_CLK_PIN, DIS_2_0_DIO_PIN);
 Display display6 = Display(DIS_CLK_PIN, DIS_2_1_DIO_PIN);
 Display display7 = Display(DIS_CLK_PIN, DIS_3_0_DIO_PIN);
-Display display8 = Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN);
+Display display8 = Display(DIS_CLK_PIN, DIS_3_1_DIO_PIN);*/
 
 Button encoderButton1 = Button(ENC_0_BTN_GPIO_PIN, onButtonPressed);
 Button encoderButton2 = Button(ENC_1_BTN_GPIO_PIN, onButtonPressed);
@@ -57,95 +62,176 @@ Encoder encoder2 = Encoder(ENC_1_GPIO_A_PINS, ENC_1_GPIO_B_PINS, 2, onEncoderCha
 Encoder encoder3 = Encoder(ENC_2_GPIO_A_PINS, ENC_2_GPIO_B_PINS, 3, onEncoderChanged);
 Encoder encoder4 = Encoder(ENC_3_GPIO_A_PINS, ENC_3_GPIO_B_PINS, 4, onEncoderChanged);
 
-Potentiometer pot1 = Potentiometer(POT_0_PIN, -128, 128);
+Encoder* encoders[] = { &encoder1, &encoder2, &encoder3, &encoder4 };
+Button* buttons[] = { &encoderButton1, &encoderButton2, &encoderButton3, &encoderButton4, &button1, &button2 };
+
+Potentiometer pot1 = Potentiometer(POT_0_PIN, -32768, 32768);
 Potentiometer pot2 = Potentiometer(POT_1_PIN, -32768, 32768);
 Potentiometer pot3 = Potentiometer(POT_2_PIN, -32768, 32768);
 Potentiometer pot4 = Potentiometer(POT_3_PIN, -32768, 32768);
 Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768);
+/*
+Potentiometer pot1 = Potentiometer(POT_0_PIN, 0, 65535);
+Potentiometer pot2 = Potentiometer(POT_1_PIN, 0, 65535);
+Potentiometer pot3 = Potentiometer(POT_2_PIN, 0, 65535);
+Potentiometer pot4 = Potentiometer(POT_3_PIN, 0, 65535);
+Potentiometer pot5 = Potentiometer(POT_4_PIN, 0, 65535);*/
 
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial);
-
+  
   SPI.begin();
   mcpInput.begin();
   mcpOutput.begin();
 
-  Serial.println("kickin");
-  //Gamepad.begin();
+  for (uint8_t i = 0; i < 6; i++) {
+      buttons[i]->setup();
+  }
+
+  Gamepad.begin();
 }
 
-void checkInterrupts()
-{
-  if (isExpanderInterrupted)
-  {
+uint16_t readInterrupt() {
+  /*if (isExpanderInterrupted) {
+
     detachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN));
     uint16_t gpio = mcpInput.readGpio();
+    Serial.println(gpio);
+    isExpanderInterrupted  = false;
 
-    // Serial.println("INTERRUPT");
-
-    encoder1.process(gpio);
-    encoder2.process(gpio);
-    encoder3.process(gpio);
-    encoder4.process(gpio);
-
-    encoderButton1.checkState(gpio);
-    encoderButton2.checkState(gpio);
-    encoderButton3.checkState(gpio);
-    encoderButton4.checkState(gpio);
-
-    button1.checkState(gpio);
-    button2.checkState(gpio);
-
-    isExpanderInterrupted = false;
     attachInterrupt(digitalPinToInterrupt(MCP_INPUT_INTERRUPT_PIN), onExpanderInterrupt, FALLING);
-  }
+  }*/
 }
+
+int e1 = 0;
+int e2 = 0;
+int e3 = 0;
+int e4 = 0;
+
+int btnState = 0;
+
+int16_t p1 = 0;
+int16_t p2 = 0;
+int16_t p3 = 0;
+int16_t p4 = 0;
+int16_t p5 = 0;
 
 void loop()
 {
-  checkInterrupts();
-  simController.readSerial();
-  testAnalogReads();
-  //sendGamepadReport();
-}
+  uint16_t gpio = mcpInput.readGpio();
+  
+  bool isChanged = false;
+  
+  if (encoder1.process(gpio))
+  {
+    isChanged = true;
+  }
+ 
+  if (encoder2.process(gpio))
+  {
+    isChanged = true;
+  }
+  
+  if (encoder3.process(gpio))
+  {
+    isChanged = true;
+  }
+  
+  if (encoder4.process(gpio))
+  {
+    isChanged = true;
+  }
+  
+  if (encoderButton1.checkState())
+  {
+    isChanged = true;
+  }
+  
+  if (encoderButton2.checkState())
+  {
+    isChanged = true;
+  }
+  
+  if (encoderButton3.checkState())
+  {
+    isChanged = true;
+  }
+  
+  if (encoderButton4.checkState())
+  {
+    isChanged = true;
+  }
 
-void testAnalogReads() {
-    
-    /*display1.showNumberDec(pot1.readAndGetValue(), 0, 4, 0);
-    display3.showNumberDec(pot2.readAndGetValue(), 0, 4, 0);
-    display5.showNumberDec(pot3.readAndGetValue(), 0, 4, 0);
-    display7.showNumberDec(pot4.readAndGetValue(), 0, 4, 0);*/
+  if (button1.checkState())
+  {
+    isChanged = true;
+  }
+  
+  if (button2.checkState())
+  {
+    isChanged = true;
+  }
 
-    display2.showNumberDec(pot5.readAndGetValue(), 0, 4, 0);
 
+  if (pot1.readAndGetValue())
+  {
+    isChanged = true;
+  }
+  
+  if (pot2.readAndGetValue())
+  {
+    isChanged = true;
+  }
+
+  if (pot3.readAndGetValue())
+  {
+    isChanged = true;
+  }
+
+  if (pot4.readAndGetValue())
+  {
+    isChanged = true;
+  }
+  
+  if (pot5.readAndGetValue())
+  {
+    isChanged = true;
+  }
+
+  if (isChanged)
+  {
+    sendGamepadReport();
+  }
 }
 
 void sendGamepadReport()
 {
+ 
   Gamepad.buttons(
-    encoderButton1.lastKnownState
-    | encoderButton2.lastKnownState << 1
-    | encoderButton3.lastKnownState << 2
-    | encoderButton4.lastKnownState << 3
-    | button1.lastKnownState << 4
-    | button2.lastKnownState << 5);
+    !encoderButton1.lastKnownState
+    | !encoderButton2.lastKnownState << 1
+    | !encoderButton3.lastKnownState << 2
+    | !encoderButton4.lastKnownState << 3
+    | !button1.lastKnownState << 4
+    | !button2.lastKnownState << 5);  
 
-  Gamepad.xAxis(pot5.readAndGetValue()); // linear slider
-
-  Gamepad.zAxis(pot1.readAndGetValue()); // -128 -> 128
-
-  Gamepad.yAxis(pot2.readAndGetValue());
-  Gamepad.rxAxis(pot3.readAndGetValue());
-  Gamepad.ryAxis(pot4.readAndGetValue());
-
+  Gamepad.xAxis(pot1.mappedValue); // Slider
+  Gamepad.zAxis(pot2.mappedValue); // 1: Legfelső
+  Gamepad.yAxis(pot3.mappedValue); // 2: Felülről a második
+  Gamepad.ryAxis(pot5.mappedValue); // 3: felülről
+  Gamepad.rxAxis(pot4.mappedValue); // 4: Legalsó
+   
+  Gamepad.rzAxis(encoder1.value);
+  Gamepad.slider(encoder2.value);
+  Gamepad.dial(encoder3.value);
+  Gamepad.wheel(encoder4.value);
+  
   Gamepad.write();
 }
 
-
 void onEncoderChanged(int8_t change, uint8_t id, int value)
-{
+{ 
   /*Serial.print(id);
   Serial.print(":");
   Serial.print(change);
@@ -154,64 +240,11 @@ void onEncoderChanged(int8_t change, uint8_t id, int value)
   Serial.println(")");*/
 }
 
-void onSimStateChanged(byte key, int value)
-{
-    Serial.println("Key " + String(key) + " received: " + String(value));
-
-  switch (key)
-  {
-  case 0: // gear
-    mcpOutput.writePin(8, value == 0 ? LOW : HIGH);
-    return;
-  case 1: // auto pilot on
-      mcpOutput.writePin(9, value == 0 ? LOW : HIGH);
-      return;
-  case 2: // hdg on
-      mcpOutput.writePin(0, value == 0 ? LOW : HIGH);
-      return;
-  case 3: // alt on
-      mcpOutput.writePin(1, value == 0 ? LOW : HIGH);
-      return;
-  case 4: // speed on
-      mcpOutput.writePin(2, value == 0 ? LOW : HIGH);
-      return;
-  case 5: // v speed on
-      mcpOutput.writePin(3, value == 0 ? LOW : HIGH);
-      return;
-  case 6: // indicated hdg
-      display1.showNumberDec(value, 0, 4, 0);
-      return;
-  case 7: // auto pilot hdg
-      display2.showNumberDec(value, 0, 4, 0);
-      return;
-  case 8: // indicated alt
-      display3.showNumberDec(value, 0, 4, 0);
-      return;
-  case 9: // auto pilot alt
-      display4.showNumberDec(value, 0, 4, 0);
-      return;
-  case 10: // indicated speed
-      display5.showNumberDec(value, 0, 4, 0);
-      return;
-  case 11: // auto pilot speed
-      display6.showNumberDec(value, 0, 4, 0);
-      return;
-  case 12: // indicated vspeed
-      display7.showNumberDec(value, 0, 4, 0);
-      return;
-  case 13: // auto pilot vspeed
-      display8.showNumberDec(value, 0, 4, 0);
-      return;
-      default: return;
-  }
-}
-
-void onExpanderInterrupt()
-{
-  isExpanderInterrupted = true;
-}
-
 void onButtonPressed(Button sender)
 {
   //Serial.println("Pressed: " + String(sender.pin));
+}
+
+void onExpanderInterrupt() {
+  isExpanderInterrupted = true;  
 }

@@ -5,7 +5,7 @@ class McpSettings
 {
 public:
 
-	McpSettings::McpSettings (uint8_t slaveSelectorPin) 
+	McpSettings (uint8_t slaveSelectorPin) 
 		: SlaveSelectorPin(slaveSelectorPin) { }
 
 	// shared settings

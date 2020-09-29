@@ -36,7 +36,7 @@ const byte digitToSegment[] = {
 static const byte minusSegments = 0b01000000;
 
 const byte clearData[] = { 0, 0, 0, 0 };
-const uint32_t delayInMicrosec = 100;
+const uint32_t delayInMicrosec = 10;
 
 class Display
 {
@@ -94,6 +94,7 @@ class Display
         uint8_t digits[4];
     
       if (num == 0 && !leading_zero) {
+
         // Singular case - take care separately
         for(uint8_t i = 0; i < (length-1); i++)
           digits[i] = 0;
@@ -142,11 +143,12 @@ class Display
     byte dioPin = 0;
     byte brightness = 8;
     int displayedValue = 0;
-
+    uint8_t displayedDigits[4] = { 0,0,0,0 };
 
     void stop()
     {
       pinMode(dioPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
       pinMode(clkPin, INPUT);
       delayMicroseconds(delayInMicrosec);
       pinMode(dioPin, INPUT);
@@ -159,7 +161,9 @@ class Display
       for (byte i = 0; i < 8; i++)
       {
         pinMode(clkPin, OUTPUT);
+        //delayMicroseconds(delayInMicrosec);
         pinMode(dioPin, (data & 0x01 ? INPUT : OUTPUT));       
+        //delayMicroseconds(delayInMicrosec);
         pinMode(clkPin, INPUT);
         delayMicroseconds(delayInMicrosec);
         data = data >> 1;
@@ -167,11 +171,16 @@ class Display
     
       // Wait for acknowledge
       pinMode(clkPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
       pinMode(dioPin, INPUT);
+      //delayMicroseconds(delayInMicrosec);
       pinMode(clkPin, INPUT);
+      //delayMicroseconds(delayInMicrosec);
       byte ack = digitalRead(dioPin);
       pinMode(dioPin, OUTPUT);
+      delayMicroseconds(delayInMicrosec);
       pinMode(clkPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
    
       return ack;
     }
@@ -179,20 +188,25 @@ class Display
     void setSegments(const byte segments[], byte length, byte pos)
     {
       pinMode(dioPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
       writeByte(TM1637_I2C_COMM1); // Write COMM1
+      //delayMicroseconds(delayInMicrosec);
       stop();
     
       pinMode(dioPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
       writeByte(TM1637_I2C_COMM2 + (pos & 0x03)); // Write COMM2 + first digit address
       for (byte k = 0; k < length; k++) // Write the data bytes
       { 
         writeByte(segments[k]);
       }
-    
+      //delayMicroseconds(delayInMicrosec);
       stop();
     
       pinMode(dioPin, OUTPUT);
+      //delayMicroseconds(delayInMicrosec);
       writeByte(TM1637_I2C_COMM3 + (brightness & 0x0f)); // Write COMM3 + brightness
+      //delayMicroseconds(delayInMicrosec);
       stop();
     }
 

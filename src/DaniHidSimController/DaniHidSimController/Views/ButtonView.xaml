@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="DaniHidSimController.Views.ButtonView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="0 0 0 10"/>
+        <Grid>
+            <Ellipse Width="32" Height="32" Stroke="Black" StrokeThickness="1">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                <Setter Property="Fill" Value="Green"/>
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                <Setter Property="Fill" Value="Gray"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+        </Grid>
+    </StackPanel>
+</UserControl>

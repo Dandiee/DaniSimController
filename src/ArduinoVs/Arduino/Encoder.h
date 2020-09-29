@@ -15,64 +15,68 @@
 
 const byte stateTable[][4] =
 {
-	// 00         01           10           11
-	{R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
-	{R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
-	{R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
-	{R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
-	{R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
-	{R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
-	{R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
+  // 00         01           10           11
+  {R_START,    R_CW_BEGIN,  R_CCW_BEGIN, R_START},           // R_START 
+  {R_CW_NEXT,  R_START,     R_CW_FINAL,  R_START | DIR_CW},  // R_CW_FINAL
+  {R_CW_NEXT,  R_CW_BEGIN,  R_START,     R_START},           // R_CW_BEGIN
+  {R_CW_NEXT,  R_CW_BEGIN,  R_CW_FINAL,  R_START},           // R_CW_NEXT
+  {R_CCW_NEXT, R_START,     R_CCW_BEGIN, R_START},           // R_CCW_BEGIN
+  {R_CCW_NEXT, R_CCW_FINAL, R_START,     R_START | DIR_CCW}, // R_CCW_FINAL
+  {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START}            // R_CCW_NEXT
 };
 
 typedef void (*encoderCallback)(int8_t change, uint8_t id, int value);
 class Encoder
 {
 public:
-	Encoder() { }
-	Encoder(uint8_t pinA, uint8_t pinB, uint8_t id, encoderCallback callback = nullptr)
-		: pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) { }
+  Encoder() { }
+  Encoder(uint8_t pinA, uint8_t pinB, uint8_t id, encoderCallback callback = nullptr)
+    : pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) {
+      
+  }
 
-	uint8_t process(uint16_t gpio)
-	{
-		uint8_t a = bitRead(gpio, pinA);
-		uint8_t b = bitRead(gpio, pinB);
+  bool process(uint16_t gpio)
+  {
+    uint8_t a = bitRead(gpio, pinA);// digitalRead(pinA);
+    uint8_t b = bitRead(gpio, pinB);//
+    
+    if (a != stateA || b != stateB)
+    {
+      stateA = a;
+      stateB = b;
 
-		if (a != stateA || b != stateB)
-		{
-			stateA = a;
-			stateB = b;
+      uint8_t pinState = (a << 1) | b;
+      state = stateTable[state & 0b00001111][pinState];
+      uint8_t result = (state & 0b00110000);
 
-			uint8_t pinState = (a << 1) | b;
-			state = stateTable[state & 0b00001111][pinState];
-			uint8_t result = (state & 0b00110000);
+      if (result)
+      {
+        int8_t change = result == DIR_CW ? -1 : 1;
+        value -= change;
+        if (callback)
+        {
+          return true;
+          callback(change, id, value);
+        }
+      }
 
-			if (result)
-			{
-				int8_t change = result == DIR_CW ? -1 : 1;
-				value += change;
-				if (callback)
-				{
-					callback(change, id, value);
-				}
-			}
+      return false;
+    }
 
-			return result;
-		}
+    return 0;
+  }
 
-		return 0;
-	}
-
-	int value = 0;
-	uint8_t pinA = 0;
-	uint8_t pinB = 0;
+  int value = 0;
+  int reportedValue = 0;
+  uint8_t pinA = 0;
+  uint8_t pinB = 0;
 private:
 
-	uint8_t id = 0;
-	encoderCallback callback = nullptr;
-	uint8_t state = 0;
-	uint8_t stateA = 1;
-	uint8_t stateB = 1;
+  uint8_t id = 0;
+  encoderCallback callback = nullptr;
+  uint8_t state = 0;
+  uint8_t stateA = 1;
+  uint8_t stateB = 1;
 
 };
 
