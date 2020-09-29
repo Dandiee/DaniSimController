@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DaniHidSimController
 {
-    public partial class App : Application
+    public partial class App
     {
         public static IServiceProvider ServiceProvider { get; private set; }
 

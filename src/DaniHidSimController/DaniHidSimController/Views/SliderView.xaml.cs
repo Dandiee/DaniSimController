@@ -33,7 +33,7 @@ namespace DaniHidSimController.Views
             if (d is SliderView sliderView)
             {
                 var value = (double) e.NewValue;
-                var range = sliderView.ActualHeight - sliderView.KnobHeight;
+                var range = sliderView.GrfxContainer.ActualHeight - sliderView.KnobHeight;
 
                 sliderView.VerticalOffset = range -
                     Map(value, short.MinValue, short.MaxValue, 0, range);
@@ -63,7 +63,13 @@ namespace DaniHidSimController.Views
             set => SetValue(KnobMarginProperty, value);
         }
 
-
+        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
+            nameof(Title), typeof(string), typeof(SliderView), new PropertyMetadata(default(string)));
+        public string Title
+        {
+            get => (string) GetValue(TitleProperty);
+            set => SetValue(TitleProperty, value);
+        }
         private static double Map(double x, double in_min, double in_max, double out_min, double out_max)
         {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
