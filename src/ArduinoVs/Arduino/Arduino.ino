@@ -7,7 +7,7 @@
 #include "Encoder.h"
 // #include "Display.h"
 #include "SimController.h"
-#include <HID-Project.h>
+#include "Gamepad.h"
 
 void onEncoderChanged(int8_t change, byte id, int value);
 void onButtonPressed(Button sender);
@@ -70,12 +70,6 @@ Potentiometer pot2 = Potentiometer(POT_1_PIN, -32768, 32768);
 Potentiometer pot3 = Potentiometer(POT_2_PIN, -32768, 32768);
 Potentiometer pot4 = Potentiometer(POT_3_PIN, -32768, 32768);
 Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768);
-/*
-Potentiometer pot1 = Potentiometer(POT_0_PIN, 0, 65535);
-Potentiometer pot2 = Potentiometer(POT_1_PIN, 0, 65535);
-Potentiometer pot3 = Potentiometer(POT_2_PIN, 0, 65535);
-Potentiometer pot4 = Potentiometer(POT_3_PIN, 0, 65535);
-Potentiometer pot5 = Potentiometer(POT_4_PIN, 0, 65535);*/
 
 void setup()
 {
