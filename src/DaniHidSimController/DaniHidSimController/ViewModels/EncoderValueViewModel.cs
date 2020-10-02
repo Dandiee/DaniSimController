@@ -1,5 +1,4 @@
-﻿using System;
-using DaniHidSimController.Models;
+﻿using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
@@ -8,18 +7,18 @@ namespace DaniHidSimController.ViewModels
     public sealed class EncoderValueViewModel : BindableBase
     {
         private readonly ISimConnectService _simConnectService;
-        private readonly Func<short, int, uint> _mapFunction;
-        private readonly SimEvents _simEvent;
+        private readonly SimEvents _increaseEvent;
+        private readonly SimEvents _decreaseEvent;
         private bool _isInitialized;
 
         public EncoderValueViewModel(
             ISimConnectService simConnectService,
-            Func<short, int, uint> mapFunction,
-            SimEvents simEvent)
+            SimEvents increaseEvent,
+            SimEvents decreaseEvent)
         {
             _simConnectService = simConnectService;
-            _mapFunction = mapFunction;
-            _simEvent = simEvent;
+            _increaseEvent = increaseEvent;
+            _decreaseEvent = decreaseEvent;
         }
 
         private uint _mappedValue;
@@ -30,7 +29,7 @@ namespace DaniHidSimController.ViewModels
             {
                 if (SetProperty(ref _mappedValue, value))
                 {
-                    _simConnectService.TransmitEvent(_simEvent, value);
+                    _simConnectService.TransmitEvent(_increaseEvent, value);
                 }
             }
         }
@@ -48,7 +47,14 @@ namespace DaniHidSimController.ViewModels
                     if (_isInitialized)
                     {
                         var delta = value - originalValue;
-                        MappedValue = _mapFunction(value, delta);
+                        if (delta > 0)
+                        {
+                            _simConnectService.TransmitEvent(_increaseEvent, 0);
+                        }
+                        else
+                        {
+                            _simConnectService.TransmitEvent(_decreaseEvent, 0);
+                        }
                     }
                     else
                     {

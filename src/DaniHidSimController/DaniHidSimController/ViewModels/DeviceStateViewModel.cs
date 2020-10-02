@@ -14,24 +14,10 @@ namespace DaniHidSimController.ViewModels
         {
             _simConnectService = simConnectService;
 
-            Wheel = new EncoderValueViewModel(simConnectService,
-                (abs, delta) => (uint)Math.Clamp((int)(Wheel.MappedValue + delta * 100), 0, 50000), SimEvents.AP_ALT_VAR_SET_ENGLISH);
-            Slider = new EncoderValueViewModel(simConnectService,
-                (abs, delta) =>
-                {
-                    if (abs < 0)
-                    {
-                        return (uint)(360 + (abs % (-360)));
-                    }
-
-                    return (uint) (abs % 360);
-                }, SimEvents.HEADING_BUG_SET);
-
-            Dial = new EncoderValueViewModel(simConnectService,
-                (abs, delta) => (uint) Math.Clamp((int) (Dial.MappedValue + delta), 100, 400), SimEvents.AP_SPD_VAR_SET);
-
-            Rz = new EncoderValueViewModel(simConnectService,
-                (abs, delta) => (uint)Math.Clamp((int)(Dial.MappedValue + delta), 100, 400), SimEvents.AP_VS_VAR_SET_METRIC);
+            Wheel = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
+            Slider = new EncoderValueViewModel(simConnectService,SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Dial = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
+            Rz = new EncoderValueViewModel(simConnectService,SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
         }
 
         private bool SetAndTransmitEvent<T>(ref T field, T value, Func<T, uint> parameterFactory, SimEvents simEvent,
