@@ -27,7 +27,10 @@ namespace DaniHidSimController
             services.AddSingleton<IEventAggregator, EventAggregator>();
             services.AddTransient<MainWindow>();
             services.AddTransient<MainWindowViewModel>();
-            services.AddTransient<IHidService, HidService>();
+
+            services.AddSingleton<IHidService, HidService>();
+            services.AddTransient<DeviceStateViewModel>();
+            services.AddSingleton<ISimConnectService, SimConnectService>();
         }
     }
 }

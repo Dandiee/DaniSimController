@@ -9,10 +9,14 @@ namespace DaniHidSimController
     public partial class MainWindow
     {
         private readonly MainWindowViewModel _viewModel;
+        private readonly ISimConnectService _simConnectService;
 
-        public MainWindow(MainWindowViewModel viewModel)
+        public MainWindow(
+            MainWindowViewModel viewModel,
+            ISimConnectService simConnectService)
         {
             _viewModel = viewModel;
+            _simConnectService = simConnectService;
             DataContext = viewModel;
 
             InitializeComponent();
@@ -22,6 +26,18 @@ namespace DaniHidSimController
         {
             var handle = new WindowInteropHelper(this).Handle;
             var source = HwndSource.FromHwnd(handle);
+
+            source.AddHook(_viewModel.WndProc);
+            source.AddHook(_simConnectService.WndProc);
+
+            try
+            {
+                _simConnectService.Connect(source);
+            }
+            catch (Exception exception)
+            {
+            }
+            
 
             WinApi.RegisterRawInputDevices(new[]
             {
@@ -34,7 +50,7 @@ namespace DaniHidSimController
                 }
             }, 1, (uint) Marshal.SizeOf(typeof(RAWINPUTDEVICE)));
 
-            source.AddHook(_viewModel.WndProc);
+            
 
             base.OnSourceInitialized(e);
         }

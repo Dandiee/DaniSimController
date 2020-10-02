@@ -22,10 +22,10 @@
         <local:ButtonView Grid.Row="0" Grid.Column="0" IsPressed="{Binding State.Button5}" Title="Button #5"/>
         <local:ButtonView Grid.Row="0" Grid.Column="1" IsPressed="{Binding State.Button6}" Title="Button #6"/>
 
-        <local:EncoderView Value="{Binding State.Rz}" IsPressed="{Binding State.Button1}" Title="Rz" Grid.Column="2" Grid.Row="0" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Slider}" IsPressed="{Binding State.Button3}" Title="Slider" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Dial}" IsPressed="{Binding State.Button2}" Title="Dial" Grid.Column="2" Grid.Row="2" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Wheel}" IsPressed="{Binding State.Button4}" Title="Wheel" Grid.Column="2" Grid.Row="3" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Rz.RawValue}" MappedValue="{Binding State.Rz.MappedValue}" IsPressed="{Binding State.Button1}" Title="Rz" Grid.Column="2" Grid.Row="0" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Slider.RawValue}" MappedValue="{Binding State.Slider.MappedValue}" IsPressed="{Binding State.Button3}" Title="Slider" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Dial.RawValue}" MappedValue="{Binding State.Dial.MappedValue}" IsPressed="{Binding State.Button2}" Title="Dial" Grid.Column="2" Grid.Row="2" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Wheel.RawValue}" MappedValue="{Binding State.Wheel.MappedValue}" IsPressed="{Binding State.Button4}" Title="Wheel" Grid.Column="2" Grid.Row="3" Diameter="50" StepCount="24"/>
 
         <local:PotentiometerView Value="{Binding State.Z}" Title="Z" Grid.Column="3" Grid.Row="0" Diameter="50"/>
         <local:PotentiometerView Value="{Binding State.Y}" Title="Y" Grid.Column="3" Grid.Row="1" Diameter="50"/>

@@ -1,10 +1,59 @@
-﻿using DaniHidSimController.Mvvm;
+﻿using System;
+using System.Runtime.CompilerServices;
+using DaniHidSimController.Models;
+using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
     public sealed class DeviceStateViewModel : BindableBase
     {
+        private readonly ISimConnectService _simConnectService;
+
+        public DeviceStateViewModel(ISimConnectService simConnectService)
+        {
+            _simConnectService = simConnectService;
+
+            Wheel = new EncoderValueViewModel(simConnectService,
+                (abs, delta) => (uint)Math.Clamp((int)(Wheel.MappedValue + delta * 100), 0, 50000), SimEvents.AP_ALT_VAR_SET_ENGLISH);
+            Slider = new EncoderValueViewModel(simConnectService,
+                (abs, delta) =>
+                {
+                    if (abs < 0)
+                    {
+                        return (uint)(360 + (abs % (-360)));
+                    }
+
+                    return (uint) (abs % 360);
+                }, SimEvents.HEADING_BUG_SET);
+
+            Dial = new EncoderValueViewModel(simConnectService,
+                (abs, delta) => (uint) Math.Clamp((int) (Dial.MappedValue + delta), 100, 400), SimEvents.AP_SPD_VAR_SET);
+
+            Rz = new EncoderValueViewModel(simConnectService,
+                (abs, delta) => (uint)Math.Clamp((int)(Dial.MappedValue + delta), 100, 400), SimEvents.AP_VS_VAR_SET_METRIC);
+        }
+
+        private bool SetAndTransmitEvent<T>(ref T field, T value, Func<T, uint> parameterFactory, SimEvents simEvent,
+            [CallerMemberName] string propertyName = null)
+        {
+            if (SetProperty(ref field, value, propertyName))
+            {
+                _simConnectService.TransmitEvent(simEvent, parameterFactory(value));
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private string _bytesText;
+        public string BytesText
+        {
+            get => _bytesText;
+            set => SetProperty(ref _bytesText, value);
+        }
+
         private bool _button1;
         public bool Button1
         {
@@ -82,32 +131,10 @@ namespace DaniHidSimController.ViewModels
             set => SetProperty(ref _ry, value);
         }
 
-        private short _rz;
-        public short Rz
-        {
-            get => _rz;
-            set => SetProperty(ref _rz, value);
-        }
-
-        private short _slider;
-        public short Slider
-        {
-            get => _slider;
-            set => SetProperty(ref _slider, value);
-        }
-        private short _wheel;
-        public short Wheel
-        {
-            get => _wheel;
-            set => SetProperty(ref _wheel, value);
-        }
-
-        private short _dial;
-        public short Dial
-        {
-            get => _dial;
-            set => SetProperty(ref _dial, value);
-        }
+        public EncoderValueViewModel Rz { get; }
+        public EncoderValueViewModel Slider { get; }
+        public EncoderValueViewModel Wheel { get; }
+        public EncoderValueViewModel Dial { get; }
 
         public void Apply(DaniDeviceState state)
         {
@@ -119,14 +146,16 @@ namespace DaniHidSimController.ViewModels
             Button6 = (state.ButtonStates & 32) == 32;
 
             X = state.X;
+
             Y = state.Y;
             Z = state.Z;
             Rx = state.Rx;
             Ry = state.Ry;
-            Rz = state.Rz;
-            Slider = state.Slider;
-            Wheel = state.Wheel;
-            Dial = state.Dial;
+
+            Rz.RawValue = state.Rz;
+            Slider.RawValue = state.Slider;
+            Wheel.RawValue = state.Wheel;
+            Dial.RawValue = state.Dial;
         }
     }
 }

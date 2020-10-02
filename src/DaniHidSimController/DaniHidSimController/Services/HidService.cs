@@ -7,26 +7,27 @@ namespace DaniHidSimController.Services
 {
     public interface IHidService
     {
-        DaniDeviceState GetDeviceState(IntPtr rawInputHandle);
+        DaniDeviceState GetDeviceState(IntPtr rawInputHandle, out byte[] bytes);
     }
 
     public sealed class HidService : IHidService
     {
-        public DaniDeviceState GetDeviceState(IntPtr rawInputHandle)
+        public DaniDeviceState GetDeviceState(IntPtr rawInputHandle, out byte[] bytes)
         {
+            var skipper = 24u;
             var dwSize = 0u;
             var nativeBuffer = IntPtr.Zero;
             WinApi.GetRawInputData(rawInputHandle, 268435459, nativeBuffer, ref dwSize,
-                (uint)Marshal.SizeOf(typeof(RAWINPUT)));
+                skipper);
 
             nativeBuffer = Marshal.AllocHGlobal((int)dwSize);
             WinApi.GetRawInputData(rawInputHandle, 268435459, nativeBuffer, ref dwSize,
-                (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER)));
+                skipper);
 
-            byte[] managedArray = new byte[dwSize];
-            Marshal.Copy(nativeBuffer, managedArray, 0, (int)dwSize);
+            bytes = new byte[dwSize];
+            Marshal.Copy(nativeBuffer, bytes, 0, (int)dwSize);
 
-            return Marshal.PtrToStructure<DaniDeviceState>(IntPtr.Add(nativeBuffer, Marshal.SizeOf<RAWINPUT>()));
+            return Marshal.PtrToStructure<DaniDeviceState>(IntPtr.Add(nativeBuffer, (int)(dwSize - 24)));
         }
     }
 }

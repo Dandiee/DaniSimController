@@ -82,5 +82,13 @@ namespace DaniHidSimController.Views
             get => (bool) GetValue(IsPressedProperty);
             set => SetValue(IsPressedProperty, value);
         }
+
+        public static readonly DependencyProperty MappedValueProperty = DependencyProperty.Register(
+            nameof(MappedValue), typeof(uint), typeof(EncoderView), new PropertyMetadata(default(uint)));
+        public uint MappedValue
+        {
+            get => (uint) GetValue(MappedValueProperty);
+            set => SetValue(MappedValueProperty, value);
+        }
     }
 }
