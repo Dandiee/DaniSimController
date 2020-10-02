@@ -70,6 +70,7 @@ Potentiometer pot2 = Potentiometer(POT_1_PIN, -32768, 32768);
 Potentiometer pot3 = Potentiometer(POT_2_PIN, -32768, 32768);
 Potentiometer pot4 = Potentiometer(POT_3_PIN, -32768, 32768);
 Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768);
+Potentiometer pot6 = Potentiometer(POT_5_PIN, -32768, 32768);
 
 void setup()
 {
@@ -210,16 +211,19 @@ void sendGamepadReport()
     | !button1.lastKnownState << 4
     | !button2.lastKnownState << 5);  
 
-  Gamepad.xAxis(pot1.mappedValue); // Slider
-  Gamepad.zAxis(pot2.mappedValue); // 1: Legfelső
-  Gamepad.yAxis(pot3.mappedValue); // 2: Felülről a második
-  Gamepad.ryAxis(pot5.mappedValue); // 3: felülről
-  Gamepad.rxAxis(pot4.mappedValue); // 4: Legalsó
-   
-  Gamepad.rzAxis(encoder1.value);
-  Gamepad.slider(encoder2.value);
-  Gamepad.dial(encoder3.value);
-  Gamepad.wheel(encoder4.value);
+  Gamepad.analog1(pot1.mappedValue);
+  Gamepad.analog2( (-1 * pot2.mappedValue) - 1);
+  Gamepad.analog3(pot3.mappedValue);
+  Gamepad.analog4(pot5.mappedValue);
+  Gamepad.analog5(pot4.mappedValue);
+  Gamepad.analog6(pot6.mappedValue);
+
+
+  
+  Gamepad.analog7(encoder1.value);
+  Gamepad.analog8(encoder2.value);
+  Gamepad.analog9(encoder3.value);
+  Gamepad.analog10(encoder4.value);
   
   Gamepad.write();
 }

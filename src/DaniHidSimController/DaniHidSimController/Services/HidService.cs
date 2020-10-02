@@ -27,7 +27,7 @@ namespace DaniHidSimController.Services
             bytes = new byte[dwSize];
             Marshal.Copy(nativeBuffer, bytes, 0, (int)dwSize);
 
-            return Marshal.PtrToStructure<DaniDeviceState>(IntPtr.Add(nativeBuffer, (int)(dwSize - 24)));
+            return Marshal.PtrToStructure<DaniDeviceState>(IntPtr.Add(nativeBuffer, (int)(dwSize - 26)));
         }
     }
 }

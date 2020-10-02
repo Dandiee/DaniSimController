@@ -47,3 +47,4 @@ const uint8_t POT_1_PIN = A1;
 const uint8_t POT_2_PIN = A2;
 const uint8_t POT_3_PIN = A3;
 const uint8_t POT_4_PIN = A4;
+const uint8_t POT_5_PIN = A5;

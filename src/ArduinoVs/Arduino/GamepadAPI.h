@@ -59,17 +59,16 @@ typedef union {
 		uint8_t button31 : 1;
 		uint8_t button32 : 1;
 
-		int16_t	xAxis;
-		int16_t	yAxis;
-		int16_t	zAxis;
-
-		int16_t	rxAxis;
-		int16_t	ryAxis;	
-		int16_t	rzAxis;
-		
-		int16_t	slider;
-		int16_t	dial;
-		int16_t	wheel;
+		int16_t	analog1;
+		int16_t	analog2;
+		int16_t	analog3;
+		int16_t	analog4;
+		int16_t	analog5;	
+		int16_t	analog6;	
+		int16_t	analog7;
+		int16_t	analog8;
+		int16_t analog9;
+		int16_t	analog10;
 
 		uint8_t	dPad1 : 4;
 		uint8_t	dPad2 : 4;
@@ -115,59 +114,48 @@ public:
     }
     
     
-    void GamepadAPI::xAxis(int16_t a){ 
-      _report.xAxis = a; 
+    void GamepadAPI::analog1(int16_t a){ 
+      _report.analog1 = a; 
     }
     
     
-    void GamepadAPI::yAxis(int16_t a){ 
-      _report.yAxis = a; 
+    void GamepadAPI::analog2(int16_t a){ 
+      _report.analog2 = a; 
     }
     
-    
-    void GamepadAPI::zAxis(int16_t a){ 
-      _report.zAxis = a; 
+    void GamepadAPI::analog3(int16_t a){ 
+      _report.analog3 = a; 
     }
     
-    
-    void GamepadAPI::rxAxis(int16_t a){ 
-      _report.rxAxis = a; 
+    void GamepadAPI::analog4(int16_t a){ 
+      _report.analog4 = a; 
     }
     
-    
-    void GamepadAPI::ryAxis(int16_t a){ 
-      _report.ryAxis = a; 
+    void GamepadAPI::analog5(int16_t a){ 
+      _report.analog5 = a; 
     }
     
-    
-    void GamepadAPI::rzAxis(int16_t a){ 
-      _report.rzAxis = a; 
+    void GamepadAPI::analog6(int16_t a){ 
+      _report.analog6 = a; 
     }
     
-    void GamepadAPI::slider(int16_t a){ 
-      _report.slider = a; 
+    void GamepadAPI::analog7(int16_t a){ 
+      _report.analog7 = a; 
     }
     
-    void GamepadAPI::dial(int16_t a){ 
-      _report.dial = a; 
-    }
-    
-    void GamepadAPI::wheel(int16_t a){ 
-      _report.wheel = a;
-    }
-    
-    
-    void GamepadAPI::dPad1(int8_t d){ 
-      _report.dPad1 = d; 
-    }
-    
-    
-    void GamepadAPI::dPad2(int8_t d){ 
-      _report.dPad2 = d; 
+    void GamepadAPI::analog8(int16_t a){ 
+      _report.analog8 = a; 
     }
 
-
-	// Sending is public in the base class for advanced users.
+    void GamepadAPI::analog9(int16_t a){ 
+      _report.analog9 = a; 
+    }
+    
+    void GamepadAPI::analog10(int16_t a){ 
+      _report.analog10 = a;
+    }
+    
+    	// Sending is public in the base class for advanced users.
 	virtual void SendReport(void* data, int length) = 0;
 
 protected:

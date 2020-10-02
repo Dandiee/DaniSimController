@@ -83,16 +83,20 @@ namespace DaniHidSimController.Services
     public struct DaniDeviceState
     {
         [FieldOffset(00)] public byte ReportId;
+        
         [FieldOffset(01)] public int ButtonStates;     // 4 byte
-        [FieldOffset(05)] public short X;              // 2 byte
-        [FieldOffset(07)] public short Y;              // 2 byte
-        [FieldOffset(09)] public short Z;              // 2 byte
-        [FieldOffset(11)] public short Rx;            // 2 byte
-        [FieldOffset(13)] public short Ry;            // 2 byte
-        [FieldOffset(15)] public short Rz;            // 2 byte
-        [FieldOffset(17)] public short Slider;        // 2 byte
-        [FieldOffset(19)] public short Dial;          // 2 byte
-        [FieldOffset(21)] public short Wheel;         // 2 byte => 9*2 = 18 bytes
-        [FieldOffset(23)] public byte Dpads;          // 1 byte
+
+        [FieldOffset(05)] public short Analog1;              // 2 byte
+        [FieldOffset(07)] public short Analog2;              // 2 byte
+        [FieldOffset(09)] public short Analog3;              // 2 byte
+        [FieldOffset(11)] public short Analog4;            // 2 byte
+        [FieldOffset(13)] public short Analog5;            // 2 byte
+        [FieldOffset(15)] public short Analog6;            // 2 byte
+        [FieldOffset(17)] public short Analog7;        // 2 byte
+        [FieldOffset(19)] public short Analog8;          // 2 byte
+        [FieldOffset(21)] public short Analog9;         // 2 byte => 9*2 = 18 bytes
+        [FieldOffset(23)] public short Analog10;         // 2 byte => 9*2 = 18 bytes
+
+        [FieldOffset(25)] public byte Dpads;          // 1 byte
     }
 }

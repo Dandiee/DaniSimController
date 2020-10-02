@@ -14,10 +14,10 @@ namespace DaniHidSimController.ViewModels
         {
             _simConnectService = simConnectService;
 
-            Wheel = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
-            Slider = new EncoderValueViewModel(simConnectService,SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
-            Dial = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
-            Rz = new EncoderValueViewModel(simConnectService,SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
+            Analog7 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
+            Analog8 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Analog9 = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
+            Analog10 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
         }
 
         private bool SetAndTransmitEvent<T>(ref T field, T value, Func<T, uint> parameterFactory, SimEvents simEvent,
@@ -82,45 +82,52 @@ namespace DaniHidSimController.ViewModels
             set => SetProperty(ref _button6, value);
         }
 
-        private short _x;
-        public short X
+        private short _analog1;
+        public short Analog1
         {
-            get => _x;
-            set => SetProperty(ref _x, value);
+            get => _analog1;
+            set => SetProperty(ref _analog1, value);
         }
 
-        private short _y;
-        public short Y
+        private short _analog2;
+        public short Analog2
         {
-            get => _y;
-            set => SetProperty(ref _y, value);
+            get => _analog2;
+            set => SetProperty(ref _analog2, value);
         }
 
-        private short _z;
-        public short Z
+        private short _analog3;
+        public short Analog3
         {
-            get => _z;
-            set => SetProperty(ref _z, value);
+            get => _analog3;
+            set => SetProperty(ref _analog3, value);
         }
 
-        private short _rx;
-        public short Rx
+        private short _analog4;
+        public short Analog4
         {
-            get => _rx;
-            set => SetProperty(ref _rx, value);
+            get => _analog4;
+            set => SetProperty(ref _analog4, value);
         }
 
-        private short _ry;
-        public short Ry
+        private short _analog5;
+        public short Analog5
         {
-            get => _ry;
-            set => SetProperty(ref _ry, value);
+            get => _analog5;
+            set => SetProperty(ref _analog5, value);
         }
 
-        public EncoderValueViewModel Rz { get; }
-        public EncoderValueViewModel Slider { get; }
-        public EncoderValueViewModel Wheel { get; }
-        public EncoderValueViewModel Dial { get; }
+        private short _analog6;
+        public short Analog6
+        {
+            get => _analog6;
+            set => SetProperty(ref _analog6, value);
+        }
+
+        public EncoderValueViewModel Analog7 { get; }
+        public EncoderValueViewModel Analog8 { get; }
+        public EncoderValueViewModel Analog9 { get; }
+        public EncoderValueViewModel Analog10 { get; }
 
         public void Apply(DaniDeviceState state)
         {
@@ -131,17 +138,18 @@ namespace DaniHidSimController.ViewModels
             Button5 = (state.ButtonStates & 16) == 16;
             Button6 = (state.ButtonStates & 32) == 32;
 
-            X = state.X;
+            Analog1 = state.Analog1;
 
-            Y = state.Y;
-            Z = state.Z;
-            Rx = state.Rx;
-            Ry = state.Ry;
+            Analog2 = state.Analog2;
+            Analog3 = state.Analog3;
+            Analog4 = state.Analog4;
+            Analog5 = state.Analog5;
+            Analog6 = state.Analog6;
 
-            Rz.RawValue = state.Rz;
-            Slider.RawValue = state.Slider;
-            Wheel.RawValue = state.Wheel;
-            Dial.RawValue = state.Dial;
+            Analog7.RawValue = state.Analog7;
+            Analog8.RawValue = state.Analog8;
+            Analog9.RawValue = state.Analog9;
+            Analog10.RawValue = state.Analog10;
         }
     }
 }

@@ -28,6 +28,10 @@ public:
     if (abs(newValue - _value) > 2) {
       _value = newValue;  
       mappedValue = map(_value, 0, 1024, _rangeMin, _rangeMax);
+
+      /*Serial.print(_pin);
+      Serial.print(" ");
+      Serial.println(_value);*/
       return true;
     }
 

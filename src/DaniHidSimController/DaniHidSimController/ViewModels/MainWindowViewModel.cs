@@ -22,6 +22,8 @@ namespace DaniHidSimController.ViewModels
             {
                 var newState = _hidService.GetDeviceState(lParam, out var bytes);
                 State.Apply(newState);
+                // State.BytesText = string.Join("\r\n", bytes.Select(s => Convert.ToString(s, 2).PadLeft(8, '0')));
+
                 handled = true;
             }
 

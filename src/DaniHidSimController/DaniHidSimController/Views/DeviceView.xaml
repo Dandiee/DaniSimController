@@ -10,9 +10,12 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
+            <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
@@ -22,17 +25,26 @@
         <local:ButtonView Grid.Row="0" Grid.Column="0" IsPressed="{Binding State.Button5}" Title="Button #5"/>
         <local:ButtonView Grid.Row="0" Grid.Column="1" IsPressed="{Binding State.Button6}" Title="Button #6"/>
 
-        <local:EncoderView Value="{Binding State.Rz.RawValue}" MappedValue="{Binding State.Rz.MappedValue}" IsPressed="{Binding State.Button1}" Title="Rz" Grid.Column="2" Grid.Row="0" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Slider.RawValue}" MappedValue="{Binding State.Slider.MappedValue}" IsPressed="{Binding State.Button3}" Title="Slider" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Dial.RawValue}" MappedValue="{Binding State.Dial.MappedValue}" IsPressed="{Binding State.Button2}" Title="Dial" Grid.Column="2" Grid.Row="2" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Wheel.RawValue}" MappedValue="{Binding State.Wheel.MappedValue}" IsPressed="{Binding State.Button4}" Title="Wheel" Grid.Column="2" Grid.Row="3" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog7.MappedValue}" IsPressed="{Binding State.Button1}" Title="Analog7" Grid.Column="2" Grid.Row="0" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog8.MappedValue}" IsPressed="{Binding State.Button3}" Title="Analog8" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Analog9.RawValue}" MappedValue="{Binding State.Analog9.MappedValue}" IsPressed="{Binding State.Button2}" Title="Analog9" Grid.Column="2" Grid.Row="2" Diameter="50" StepCount="24"/>
+        <local:EncoderView Value="{Binding State.Analog10.RawValue}" MappedValue="{Binding State.Analog10.MappedValue}" IsPressed="{Binding State.Button4}" Title="Analog10" Grid.Column="2" Grid.Row="3" Diameter="50" StepCount="24"/>
 
-        <local:PotentiometerView Value="{Binding State.Z}" Title="Z" Grid.Column="3" Grid.Row="0" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Y}" Title="Y" Grid.Column="3" Grid.Row="1" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Ry}" Title="Ry" Grid.Column="3" Grid.Row="2" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Rx}" Title="Rx" Grid.Column="3" Grid.Row="3" Diameter="50"/>
+        <!--<local:PotentiometerView Value="{Binding State.Analog1}" Title="Analog1" Grid.Column="3" Grid.Row="0" Diameter="50"/>
+        <local:PotentiometerView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="3" Grid.Row="1" Diameter="50"/>-->
+        <local:PotentiometerView Value="{Binding State.Analog5}" Title="Analog5" Grid.Column="3" Grid.Row="2" Diameter="50"/>
+        <local:PotentiometerView Value="{Binding State.Analog4}" Title="Analog4" Grid.Column="3" Grid.Row="3" Diameter="50"/>
 
-        <local:SliderView Value="{Binding State.X}" Title="X" Grid.Column="4" Grid.RowSpan="4" KnobWidth="30" KnobHeight="40" Grid.Row="0" />
+        <local:SliderView Value="{Binding State.Analog1}" Title="Analog1" Grid.Column="4" Grid.RowSpan="4" KnobWidth="30" KnobHeight="40" Grid.Row="0" />
+        <local:SliderView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="5" Grid.RowSpan="4" KnobWidth="30" KnobHeight="40" Grid.Row="0" />
+        
+        <local:SliderView Value="{Binding State.Analog3}" Title="Analog3" Grid.Column="0" Grid.ColumnSpan="6" KnobWidth="30" KnobHeight="40" Grid.Row="4">
+            <local:SliderView.LayoutTransform>
+                <RotateTransform Angle="90" CenterX=".5" CenterY=".5"></RotateTransform>
+            </local:SliderView.LayoutTransform>
+        </local:SliderView>
+
+        <!--<TextBox Text="{Binding State.BytesText}" Background="#555555" Foreground="#999999" AcceptsReturn="True" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="4"/>-->
 
     </Grid>
 </UserControl>
