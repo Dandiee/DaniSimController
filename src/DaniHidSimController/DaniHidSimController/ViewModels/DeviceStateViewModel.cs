@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 

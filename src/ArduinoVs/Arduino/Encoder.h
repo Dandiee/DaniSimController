@@ -32,8 +32,9 @@ public:
   Encoder() { }
   Encoder(uint8_t pinA, uint8_t pinB, uint8_t id, encoderCallback callback = nullptr)
     : pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) {
-      
   }
+
+
 
   bool process(uint16_t gpio)
   {
@@ -53,6 +54,7 @@ public:
       {
         int8_t change = result == DIR_CW ? -1 : 1;
         value -= change;
+        delta = change;
         if (callback)
         {
           return true;
@@ -60,12 +62,14 @@ public:
         }
       }
 
+      delta = 0;
       return false;
     }
 
     return 0;
   }
 
+  int8_t delta = 0;
   int value = 0;
   int reportedValue = 0;
   uint8_t pinA = 0;

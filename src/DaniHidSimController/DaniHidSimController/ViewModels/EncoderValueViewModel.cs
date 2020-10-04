@@ -1,5 +1,4 @@
-﻿using DaniHidSimController.Models;
-using DaniHidSimController.Mvvm;
+﻿using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
@@ -11,6 +10,8 @@ namespace DaniHidSimController.ViewModels
         private readonly SimEvents _decreaseEvent;
         private bool _isInitialized;
 
+        public string Name { get; }
+
         public EncoderValueViewModel(
             ISimConnectService simConnectService,
             SimEvents increaseEvent,
@@ -19,6 +20,8 @@ namespace DaniHidSimController.ViewModels
             _simConnectService = simConnectService;
             _increaseEvent = increaseEvent;
             _decreaseEvent = decreaseEvent;
+
+            Name = _increaseEvent.ToString();
         }
 
         private uint _mappedValue;

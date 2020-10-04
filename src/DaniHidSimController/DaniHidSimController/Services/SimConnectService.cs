@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Timers;
-using System.Windows.Controls;
 using System.Windows.Interop;
-using DaniHidSimController.Models;
-using DaniSimController.Models;
-using DaniSimController.Services;
 using Microsoft.FlightSimulator.SimConnect;
 
 namespace DaniHidSimController.Services
@@ -17,87 +11,92 @@ namespace DaniHidSimController.Services
         void Connect(HwndSource hwndSource);
         IntPtr WndProc(IntPtr hWnd, int iMsg, IntPtr hWParam, IntPtr hLParam, ref bool bHandled);
         void TransmitEvent(SimEvents simEvent, uint value);
+        public event EventHandler<IReadOnlyDictionary<SimVars, SimVarRequest>> OnSimVarsChanged;
     }
 
     public sealed class SimConnectService : ISimConnectService
     {
+        public event EventHandler<IReadOnlyDictionary<SimVars, SimVarRequest>> OnSimVarsChanged;
+
         private SimConnect _simConnect;
-        private readonly IDictionary<Numbers, SimVarRequest> _requests;
+        private bool _isInitialized;
+
+        private readonly IReadOnlyDictionary<SimVars, SimVarRequest> _simVarsByRequests;
+        private readonly IReadOnlyCollection<SimVarRequest> _simVars = new SimVarRequest[]
+        {
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_MASTER),
+
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_HEADING_LOCK),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_ALTITUDE_LOCK),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_ATTITUDE_HOLD),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_AIRSPEED_HOLD),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_VERTICAL_HOLD),
+
+            new SimVarRequest<float>(SimVars.GEAR_LEFT_POSITION),
+            new SimVarRequest<float>(SimVars.GEAR_RIGHT_POSITION),
+            new SimVarRequest<float>(SimVars.GEAR_CENTER_POSITION),
+        };
 
         public SimConnectService()
         {
-            _requests = new Dictionary<Numbers, SimVarRequest>();
+            _simVarsByRequests = _simVars.ToDictionary(kvp => kvp.SimVar, kvp => kvp);
         }
 
         public void Connect(HwndSource hwndSource)
         {
             _simConnect = new SimConnect("DaniConnect", hwndSource.Handle, 0x0402, null, 0);
             _simConnect.OnRecvOpen += (_, __) => OnConnected();
-            _simConnect.OnRecvSimobjectDataBytype += (_, data) => OnReceived(data);
-            _simConnect.OnRecvException += (_, ex) => OnError(ex);
+            _simConnect.OnRecvSimobjectData += (_, data) => OnSimVarReceived(data);
+            _simConnect.OnRecvException +=
+                (_, ex) => throw new Exception(((SIMCONNECT_EXCEPTION) ex.dwException).ToString());
         }
 
-        private void AddRequest(SimVar simVar)
+        private void OnSimVarReceived(SIMCONNECT_RECV_SIMOBJECT_DATA data)
         {
-            var requestId = GetNextNumber();
+            var request = _simVarsByRequests[(SimVars)data.dwRequestID];
+            request.Set(data.dwData[0]);
 
-            _simConnect.AddToDataDefinition(
-                requestId,
-                simVar.Name,
-                simVar.Type.Name,
-                SIMCONNECT_DATATYPE.FLOAT64,
-                0,
-                SimConnect.SIMCONNECT_UNUSED);
-
-            _simConnect.RegisterDataDefineStruct<double>(requestId);
-            var request = new SimVarRequest(simVar, requestId);
-            _requests[requestId] = request;
-
-            Poll(request);
-        }
-
-        private void OnReceived(SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE data)
-        {
-            if (_requests.TryGetValue((Numbers)data.dwRequestID, out var request))
+            if (_isInitialized)
             {
-                request.IsPending = false;
-                Poll(request);
-                request.IsPending = true;
+                OnSimVarsChanged?.Invoke(this, _simVarsByRequests);
             }
-
-
         }
 
-        private void Poll(SimVarRequest request)
-            => _simConnect.RequestDataOnSimObjectType(
-                request.RequestId,
-                request.RequestId,
-                0,
-                SIMCONNECT_SIMOBJECT_TYPE.USER);
-
-      
         private void OnConnected()
         {
-            foreach (SimEvents simEvent in Enum.GetValues(typeof(SimEvents)).Cast<SimEvents>())
+            foreach (var simEvent in Enum.GetValues(typeof(SimEvents)).Cast<SimEvents>())
             {
                 _simConnect.MapClientEventToSimEvent(simEvent, simEvent.ToString());
-                /*_simConnect.AddClientEventToNotificationGroup(MyGroups.FirstGroup, simEvent, false);
-                _simConnect.SetNotificationGroupPriority(MyGroups.FirstGroup,
-                    (uint) GroupIds.SIMCONNECT_GROUP_PRIORITY_HIGHEST);*/
             }
 
+
+            var methodInfo = typeof(SimConnect).GetMethod(nameof(SimConnect.RegisterDataDefineStruct));
+            if (methodInfo == default) throw new NotSupportedException("Not okay");
+
+            foreach (var simVar in _simVars)
+            {
+                _simConnect.AddToDataDefinition(
+                    simVar.SimVar,
+                    simVar.Name,
+                    string.Empty,
+                    simVar.SimConnectType,
+                    0,
+                    SimConnect.SIMCONNECT_UNUSED);
+                methodInfo.MakeGenericMethod(simVar.ClrType).Invoke(_simConnect, new object[] {simVar.SimVar});
+                _simConnect.RequestDataOnSimObject(
+                    simVar.SimVar,
+                    simVar.SimVar, 
+                    SimConnect.SIMCONNECT_OBJECT_ID_USER, 
+                    SIMCONNECT_PERIOD.VISUAL_FRAME, SIMCONNECT_DATA_REQUEST_FLAG.CHANGED, 0, 0, 0);
+            }
+
+            _isInitialized = true;
         }
 
         public void TransmitEvent(SimEvents simEvent, uint value)
             => _simConnect?.TransmitClientEvent(0, simEvent, value,
                 MyGroups.FirstGroup, SIMCONNECT_EVENT_FLAG.GROUPID_IS_PRIORITY);
 
-
-
-        private void OnError(SIMCONNECT_RECV_EXCEPTION ex)
-        {
-            throw new Exception();
-        }
 
         public IntPtr WndProc(IntPtr hWnd, int iMsg, IntPtr hWParam, IntPtr hLParam, ref bool bHandled)
         {
@@ -108,47 +107,75 @@ namespace DaniHidSimController.Services
 
             return IntPtr.Zero;
         }
-
-        private Numbers GetNextNumber() =>
-            Enumerable.Range(0, 64).Cast<Numbers>().First(n => !_requests.ContainsKey(n));
     }
 
-    enum EVENT_CTRL
+    public abstract class SimVarRequest
     {
-        PAUSE, //set pause
-        ABORT, //Quit without message
-        CLOCK, //Hours of Local Time
-    }
+        private static readonly IReadOnlyDictionary<Type, SIMCONNECT_DATATYPE> SimConnectDataTypes =
+            new Dictionary<Type, SIMCONNECT_DATATYPE>
+            {
+                [typeof(bool)] = SIMCONNECT_DATATYPE.INT32,
+                [typeof(float)] = SIMCONNECT_DATATYPE.FLOAT32,
+            };
 
-    enum GROUP_IDS
-    {
-        GROUP_1,
-    }
+        public SimVars SimVar { get; }
+        public Type ClrType { get; }
+        public SIMCONNECT_DATATYPE SimConnectType { get; }
+        public string Name { get; }
 
-    public sealed class SimVarRequest
-    {
-        public SimVar SimVar { get; }
-        public Numbers RequestId { get; }
-        public bool IsPending { get; set; }
+        public abstract void Set(object obj);
 
-        public SimVarRequest(SimVar simVar, Numbers requestId)
+        protected SimVarRequest(SimVars simVar, Type clrType)
         {
             SimVar = simVar;
-            RequestId = requestId;
+            ClrType = clrType;
+            SimConnectType = SimConnectDataTypes[clrType];
+            Name = simVar.ToString().Replace("_", " ");
         }
+    }
+    public sealed class SimVarRequest<T> : SimVarRequest
+    {
+        public T Value { get; set; }
+
+        public SimVarRequest(SimVars simVar) : base(simVar, typeof(T)) { }
+
+        public override void Set(object obj)
+        {
+            Value = (T) obj;
+        }
+    }
+
+    public enum SimEvents
+    {
+        AP_ALT_VAR_INC,
+        AP_ALT_VAR_DEC,
+
+        AP_VS_VAR_INC,
+        AP_VS_VAR_DEC,
+
+        AP_SPD_VAR_INC,
+        AP_SPD_VAR_DEC,
+
+        HEADING_BUG_INC,
+        HEADING_BUG_DEC
+    }
+
+    public enum SimVars
+    {
+        AUTOPILOT_MASTER,
+        AUTOPILOT_HEADING_LOCK,
+        AUTOPILOT_ALTITUDE_LOCK,
+        AUTOPILOT_ATTITUDE_HOLD,
+        AUTOPILOT_AIRSPEED_HOLD,
+        AUTOPILOT_VERTICAL_HOLD,
+
+        GEAR_LEFT_POSITION,
+        GEAR_RIGHT_POSITION,
+        GEAR_CENTER_POSITION
     }
 
     public enum MyGroups : uint
     {
         FirstGroup = 0
-    }
-
-    public enum GroupIds : uint
-    {
-        SIMCONNECT_GROUP_PRIORITY_LOWEST = 4000000000,
-        SIMCONNECT_GROUP_PRIORITY_DEFAULT = 2000000000,
-        SIMCONNECT_GROUP_PRIORITY_STANDARD = 1900000000,
-        SIMCONNECT_GROUP_PRIORITY_HIGHEST_MASKABLE = 10000000,
-        SIMCONNECT_GROUP_PRIORITY_HIGHEST = 1
     }
 }

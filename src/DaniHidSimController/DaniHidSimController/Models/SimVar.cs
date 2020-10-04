@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DaniSimController.Services;
 
 namespace DaniSimController.Models
 {
@@ -845,12 +847,14 @@ namespace DaniSimController.Models
         public string Name { get; }
         public string FriendlyName { get; }
         public SimVarType Type { get; }
+        public Numbers Number { get; }
 
         private SimVar(string name, string friendlyName, SimVarType type)
         {
             Name = name;
             FriendlyName = friendlyName;
             Type = type;
+            Number = Numbers.N16;// (Numbers) _simVars.Count;
 
             _simVars.Add(this);
         }

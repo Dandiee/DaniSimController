@@ -198,6 +198,15 @@ void loop()
   {
     sendGamepadReport();
   }
+
+  if ((millis() / 1000) % 2 == 0)
+  {
+    mcpOutput.writePin(15, 1);  
+  }
+  else
+  {
+    mcpOutput.writePin(15, 0);    
+  }
 }
 
 void sendGamepadReport()
@@ -209,7 +218,9 @@ void sendGamepadReport()
     | !encoderButton3.lastKnownState << 2
     | !encoderButton4.lastKnownState << 3
     | !button1.lastKnownState << 4
-    | !button2.lastKnownState << 5);  
+    | !button2.lastKnownState << 5
+    | (encoder1.delta == 1) << 6
+    | (encoder1.delta == -1) << 7);  
 
   Gamepad.analog1(pot1.mappedValue);
   Gamepad.analog2( (-1 * pot2.mappedValue) - 1);
