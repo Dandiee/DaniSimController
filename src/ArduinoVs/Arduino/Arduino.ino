@@ -199,14 +199,28 @@ void loop()
     sendGamepadReport();
   }
 
-  if ((millis() / 1000) % 2 == 0)
+  /*if ((millis() / 1000) % 2 == 0)
   {
     mcpOutput.writePin(15, 1);  
   }
   else
   {
     mcpOutput.writePin(15, 0);    
+  }*/
+
+  readFromPc();
+}
+
+uint8_t bytes[64];
+
+void readFromPc(){
+
+  int availableBytes = Serial.available();
+  if (availableBytes > 0) {
+      Serial.readBytes(bytes, availableBytes);
+      mcpOutput.writePin(15, bytes[0]);  
   }
+  
 }
 
 void sendGamepadReport()

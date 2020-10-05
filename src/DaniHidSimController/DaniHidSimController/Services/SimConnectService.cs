@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Documents;
 using System.Windows.Interop;
 using Microsoft.FlightSimulator.SimConnect;
 
@@ -56,7 +58,11 @@ namespace DaniHidSimController.Services
             var request = _simVarsByRequests[(SimVars)data.dwRequestID];
             request.Set(data.dwData[0]);
 
-            if (_isInitialized)
+            if (!_isInitialized)
+            {
+                _isInitialized = _simVars.All(s => s.IsInitialized);
+            }
+            else
             {
                 OnSimVarsChanged?.Invoke(this, _simVarsByRequests);
             }
@@ -89,8 +95,6 @@ namespace DaniHidSimController.Services
                     SimConnect.SIMCONNECT_OBJECT_ID_USER, 
                     SIMCONNECT_PERIOD.VISUAL_FRAME, SIMCONNECT_DATA_REQUEST_FLAG.CHANGED, 0, 0, 0);
             }
-
-            _isInitialized = true;
         }
 
         public void TransmitEvent(SimEvents simEvent, uint value)
@@ -124,6 +128,9 @@ namespace DaniHidSimController.Services
         public string Name { get; }
 
         public abstract void Set(object obj);
+        public abstract byte[] Get();
+
+        public bool IsInitialized { get; protected set; }
 
         protected SimVarRequest(SimVars simVar, Type clrType)
         {
@@ -142,6 +149,17 @@ namespace DaniHidSimController.Services
         public override void Set(object obj)
         {
             Value = (T) obj;
+            IsInitialized = true;
+        }
+
+        public override byte[] Get()
+        {
+            if (Value is bool b)
+            {
+                return new byte[] {b ? (byte) 1 : (byte) 0};
+            }
+
+            return new byte[0];
         }
     }
 
