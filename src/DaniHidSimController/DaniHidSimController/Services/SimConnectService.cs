@@ -13,12 +13,12 @@ namespace DaniHidSimController.Services
         void Connect(HwndSource hwndSource);
         IntPtr WndProc(IntPtr hWnd, int iMsg, IntPtr hWParam, IntPtr hLParam, ref bool bHandled);
         void TransmitEvent(SimEvents simEvent, uint value);
-        public event EventHandler<IReadOnlyDictionary<SimVars, SimVarRequest>> OnSimVarsChanged;
+        public event EventHandler<SimVarRequest> OnSimVarsChanged;
     }
 
     public sealed class SimConnectService : ISimConnectService
     {
-        public event EventHandler<IReadOnlyDictionary<SimVars, SimVarRequest>> OnSimVarsChanged;
+        public event EventHandler<SimVarRequest> OnSimVarsChanged;
 
         private SimConnect _simConnect;
         private bool _isInitialized;
@@ -64,7 +64,7 @@ namespace DaniHidSimController.Services
             }
             else
             {
-                OnSimVarsChanged?.Invoke(this, _simVarsByRequests);
+                OnSimVarsChanged?.Invoke(this, request);
             }
         }
 
@@ -128,7 +128,7 @@ namespace DaniHidSimController.Services
         public string Name { get; }
 
         public abstract void Set(object obj);
-        public abstract byte[] Get();
+        public abstract object Get();
 
         public bool IsInitialized { get; protected set; }
 
@@ -152,15 +152,7 @@ namespace DaniHidSimController.Services
             IsInitialized = true;
         }
 
-        public override byte[] Get()
-        {
-            if (Value is bool b)
-            {
-                return new byte[] {b ? (byte) 1 : (byte) 0};
-            }
-
-            return new byte[0];
-        }
+        public override object Get() => Value;
     }
 
     public enum SimEvents

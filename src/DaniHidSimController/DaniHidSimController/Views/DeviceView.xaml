@@ -41,7 +41,7 @@
 
         <StackPanel Orientation="Horizontal" Grid.Column="5" Grid.Row="0">
             <local:ButtonView IsPressed="{Binding State.Button5}" Title="Button #5"/>
-            <local:LedView Title="CON" IsActive="True" />
+            <local:LedView Title="AP" IsActive="{Binding State.Led1}" />
         </StackPanel>
         
 

@@ -26,11 +26,20 @@ namespace DaniHidSimController.ViewModels
             State = deviceStateViewModel;
 
             _simConnectService.OnSimVarsChanged += SimConnectServiceOnOnSimVarsChanged;
+            State.OnWriteBufferChanged += OnWriteBufferChanged;
         }
 
-        private void SimConnectServiceOnOnSimVarsChanged(object sender, IReadOnlyDictionary<SimVars, SimVarRequest> e)
+        private void OnWriteBufferChanged(object? sender, byte[] e)
         {
-            _usbService.Write(e[SimVars.AUTOPILOT_MASTER].Get());
+            _usbService.Write(e);
+        }
+
+        private void SimConnectServiceOnOnSimVarsChanged(object sender, SimVarRequest request)
+        {
+            if (request.SimVar == SimVars.AUTOPILOT_MASTER)
+            {
+                State.Led1 = (bool) request.Get();
+            }
         }
 
         public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

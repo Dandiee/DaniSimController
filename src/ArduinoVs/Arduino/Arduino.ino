@@ -131,7 +131,7 @@ void loop()
     sendGamepadReport();
   }
   
-  // readFromPc();
+  readFromPc();
 }
 
 void ledTest() {
@@ -147,8 +147,14 @@ void readFromPc(){
 
   int availableBytes = Serial.available();
   if (availableBytes > 0) {
+    
       Serial.readBytes(bytes, availableBytes);
-      // mcpOutput.writePin(15, bytes[0]);  
+
+      byte firstByte = bytes[0];
+
+      for (uint8_t i = 0; i < 8; i++) {
+        mcpOutput.writePin(i, bitRead(firstByte, i));    
+      }      
   }
   
 }
