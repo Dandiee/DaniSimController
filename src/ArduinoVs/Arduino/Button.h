@@ -10,25 +10,27 @@ class Button
 public:
 
   Button() { }
-  Button(const uint8_t pin, buttonPressed callback) 
-    : pin(pin), onPressedCallback(callback) { 
+  Button(const uint8_t pin, bool isGpio, bool isInverted, buttonPressed callback) 
+    : pin(pin), isGpio(isGpio), isInverted(isInverted), onPressedCallback(callback) { 
     
   }
 
   void setup() {
-    Serial.println("BUTTON IS TOTALLY SET TO: " + String(pin));
       pinMode(pin, INPUT_PULLUP);
   }
 
-  bool checkState() 
+  bool checkState(uint16_t gpio) 
   {
-    uint8_t state = digitalRead(pin);
+    uint8_t state = isGpio ? bitRead(gpio, pin) : digitalRead(pin);
 
+    if (isInverted) state = !state;
+    
     bool isChanged = false;
 
     if (state != lastKnownState) // does it differ from the previous measurement?
     {
       unsigned long now = millis();
+      Serial.println("báltozott");
       if ((now - lastChangedAt) > BUTTON_COOLDOWN) // okay, but enough time passed since the last change?
       {
         if (lastKnownState && !state)
@@ -48,6 +50,8 @@ public:
   uint8_t lastKnownState = 0;
 private:
   uint8_t cooldown = 0;
+  bool isGpio = false;
+  bool isInverted = false;
   unsigned long lastChangedAt = 0;
   buttonPressed onPressedCallback = nullptr;
 

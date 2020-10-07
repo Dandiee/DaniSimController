@@ -46,6 +46,8 @@ public:
       stateA = a;
       stateB = b;
 
+      
+
       uint8_t pinState = (a << 1) | b;
       state = stateTable[state & 0b00001111][pinState];
       uint8_t result = (state & 0b00110000);
@@ -57,8 +59,8 @@ public:
         delta = change;
         if (callback)
         {
-          return true;
           callback(change, id, value);
+          return true;
         }
       }
 

@@ -9,8 +9,8 @@ class Potentiometer
 {
 public:
 
-  Potentiometer(uint8_t analogPin, long rangeMin, long rangeMax) 
-  : _pin(analogPin), _value(0), _cursor(0), _rollingTotal(0)
+  Potentiometer(uint8_t analogPin, long rangeMin, long rangeMax, bool isInverse) 
+  : _pin(analogPin), _value(0), _cursor(0), _rollingTotal(0), isInverse(isInverse)
   { 
     _rangeMin = rangeMin;
     _rangeMax = rangeMax;
@@ -28,6 +28,11 @@ public:
     if (abs(newValue - _value) > 2) {
       _value = newValue;  
       mappedValue = map(_value, 0, 1024, _rangeMin, _rangeMax);
+
+      if (isInverse) {
+        mappedValue = (-1 * mappedValue) - 1;
+      }
+  
 
       /*Serial.print(_pin);
       Serial.print(" ");
@@ -79,6 +84,7 @@ private:
   
   long _rangeMin = 0;
   long _rangeMax = 0;
+  bool isInverse = false;
   
   uint16_t _readings[POTENTIOMETER_MEASURES];
  uint16_t _sorted[POTENTIOMETER_MEASURES];
