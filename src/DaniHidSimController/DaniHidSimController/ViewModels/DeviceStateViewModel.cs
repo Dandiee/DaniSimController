@@ -1,42 +1,29 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using DaniHidSimController.Mvvm;
+﻿using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
     public sealed class DeviceStateViewModel : BindableBase
     {
-        private readonly ISimConnectService _simConnectService;
-        public readonly byte[] WriteBuffer;
-
-        public EventHandler<byte[]> OnWriteBufferChanged;
-
-        public DeviceStateViewModel(ISimConnectService simConnectService)
+        public DeviceStateViewModel(
+            ISimConnectService simConnectService,
+            IEventAggregator eventAggregator)
         {
-            _simConnectService = simConnectService;
-
-            Analog5 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
-            Analog6 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Analog5 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Analog6 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
             Analog7 = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
             Analog8 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
             Analog9 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
             Analog10 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
 
-            WriteBuffer = new byte[16];
-        }
-
-        private bool SetAndTransmitEvent<T>(ref T field, T value, Func<T, uint> parameterFactory, SimEvents simEvent,
-            [CallerMemberName] string propertyName = null)
-        {
-            if (SetProperty(ref field, value, propertyName))
+            eventAggregator.GetEvent<UsbStateWrittenEvent>().Subscribe(state =>
             {
-                _simConnectService.TransmitEvent(simEvent, parameterFactory(value));
-
-                return true;
-            }
-
-            return false;
+                Led1 = state.IsAutopilotMasterEnabled;
+                Led2 = state.IsAutopilotHeadingEnabled;
+                Led3 = state.IsAutopilotAltitudeEnabled;
+                Led4 = state.IsAutopilotAirspeedEnabled;
+                Led5 = state.IsAutopilotVerticalSpeedEnabled;
+            });
         }
 
         private string _bytesText;
@@ -120,75 +107,49 @@ namespace DaniHidSimController.ViewModels
         public bool Led1
         {
             get => _led1;
-            set => Write(ref _led1, value, 0);
+            set => SetProperty(ref _led1, value);
         }
 
         private bool _led2;
         public bool Led2
         {
             get => _led2;
-            set => Write(ref _led2, value, 0);
+            set => SetProperty(ref _led2, value);
         }
 
         private bool _led3;
         public bool Led3
         {
             get => _led3;
-            set => Write(ref _led3, value, 0);
+            set => SetProperty(ref _led3, value);
         }
 
         private bool _led4;
         public bool Led4
         {
             get => _led4;
-            set => Write(ref _led4, value, 0);
+            set => SetProperty(ref _led4, value);
         }
 
         private bool _led5;
         public bool Led5
         {
             get => _led5;
-            set => Write(ref _led5, value, 0);
+            set => SetProperty(ref _led5, value);
         }
 
         private bool _led6;
         public bool Led6
         {
             get => _led6;
-            set => Write(ref _led6, value, 0);
+            set => SetProperty(ref _led6, value);
         }
 
         private bool _led7;
         public bool Led7
         {
             get => _led7;
-            set => Write(ref _led7, value, 0);
-        }
-
-        private bool Write(ref bool led, bool value, int index, [CallerMemberName]string propertyName = null)
-        {
-            if (SetProperty(ref led, value, propertyName))
-            {
-                var leds = (byte) (byte.MinValue |
-                                   (Led1 ? 1 : 0) |
-                                   (Led2 ? 2 : 0) |
-                                   (Led3 ? 4 : 0) |
-                                   (Led4 ? 8 : 0) |
-                                   (Led5 ? 16 : 0) |
-                                   (Led6 ? 32 : 0) |
-                                   (Led7 ? 64 : 0));
-
-                var bytes = new byte[]
-                {
-                    leds
-                };
-
-                OnWriteBufferChanged?.Invoke(this, bytes);
-
-                return true;
-            }
-
-            return false;
+            set => SetProperty(ref _led7, value);
         }
 
 
@@ -220,32 +181,6 @@ namespace DaniHidSimController.ViewModels
             Analog8.RawValue = state.Analog8;
             Analog9.RawValue = state.Analog9;
             Analog10.RawValue = state.Analog10;
-        }
-    }
-
-    public sealed class LedValueViewModel : BindableBase
-    {
-        private readonly DeviceStateViewModel _device;
-        public int Index { get; }
-
-        public LedValueViewModel(int index, DeviceStateViewModel device)
-        {
-            _device = device;
-            Index = index;
-        }
-
-        private bool _isActive;
-        public bool IsActive
-        {
-            get => _isActive;
-            set
-            {
-                if(SetProperty(ref _isActive, value))
-                {
-                    //_device.WriteBuffer[Index] = _isActive;
-                }
-            }
-
         }
     }
 }

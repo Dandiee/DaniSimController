@@ -1,45 +1,100 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.InteropServices;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
+    [StructLayout(LayoutKind.Explicit, Size = 16)]
+    public struct DeviceWriteState
+    {
+        [FieldOffset(0)]
+        public unsafe fixed byte ByteArray[2];
+
+        [FieldOffset(0)]
+        public bool IsAutopilotMasterEnabled;
+
+        [FieldOffset(1)]
+        public bool IsAutopilotHeadingEnabled;
+
+        [FieldOffset(2)]
+        public bool IsAutopilotAltitudeEnabled;
+
+        [FieldOffset(3)]
+        public bool IsAutopilotAirspeedEnabled;
+
+        [FieldOffset(4)]
+        public bool IsAutopilotVerticalSpeedEnabled;
+    }
+
+    public sealed class UsbStateWrittenEvent : PubSubEvent<DeviceWriteState> { }
+
     public sealed class MainWindowViewModel : BindableBase
     {
         private readonly IHidService _hidService;
         private readonly IUsbService _usbService;
-        private readonly ISimConnectService _simConnectService;
+        private readonly IEventAggregator _eventAggregator;
+
+        private DeviceWriteState _lastSentState;
         public DeviceStateViewModel State { get; }
-        
+
         public MainWindowViewModel(
-            IHidService hidService, 
+            IHidService hidService,
             DeviceStateViewModel deviceStateViewModel,
             IUsbService usbService,
-            ISimConnectService simConnectService)
+            IEventAggregator eventAggregator)
         {
             _hidService = hidService;
             _usbService = usbService;
-            _simConnectService = simConnectService;
+            _eventAggregator = eventAggregator;
 
             State = deviceStateViewModel;
+            _lastSentState = new DeviceWriteState();
 
-            _simConnectService.OnSimVarsChanged += SimConnectServiceOnOnSimVarsChanged;
-            State.OnWriteBufferChanged += OnWriteBufferChanged;
+            eventAggregator.GetEvent<SimVarReceivedEvent>().Subscribe(OnSimVarReceived);
         }
 
-        private void OnWriteBufferChanged(object? sender, byte[] e)
+        private unsafe void OnSimVarReceived(SimVarRequest request)
         {
-            _usbService.Write(e);
-        }
-
-        private void SimConnectServiceOnOnSimVarsChanged(object sender, SimVarRequest request)
-        {
-            if (request.SimVar == SimVars.AUTOPILOT_MASTER)
+            switch (request.SimVar)
             {
-                State.Led1 = (bool) request.Get();
+                case SimVars.AUTOPILOT_MASTER:
+                    _lastSentState.IsAutopilotMasterEnabled = (bool)request.Get();
+                    break;
+
+                case SimVars.AUTOPILOT_HEADING_LOCK:
+                    _lastSentState.IsAutopilotHeadingEnabled = (bool)request.Get();
+                    break;
+
+                case SimVars.AUTOPILOT_AIRSPEED_HOLD:
+                    _lastSentState.IsAutopilotAirspeedEnabled = (bool)request.Get();
+                    break;
+
+                case SimVars.AUTOPILOT_VERTICAL_HOLD:
+                    _lastSentState.IsAutopilotVerticalSpeedEnabled = (bool)request.Get();
+                    break;
             }
+
+            var bytes = new byte[2];
+
+            fixed (byte* buffer = _lastSentState.ByteArray)
+            {
+                int index = 0;
+                for (byte* i = buffer; *i != 0; i++)
+                {
+                    bytes[index++] = *i;
+                }
+            }
+
+            bytes[0] = (byte) (
+                (_lastSentState.IsAutopilotMasterEnabled ? 1 : 0) << 0 |
+                (_lastSentState.IsAutopilotHeadingEnabled ? 1 : 0) << 1 |
+                (_lastSentState.IsAutopilotAltitudeEnabled ? 1 : 0) << 2 |
+                (_lastSentState.IsAutopilotAirspeedEnabled ? 1 : 0) << 3 |
+                (_lastSentState.IsAutopilotVerticalSpeedEnabled ? 1 : 0) << 4);
+
+            _usbService.Write(bytes);
+            _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(_lastSentState);
         }
 
         public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

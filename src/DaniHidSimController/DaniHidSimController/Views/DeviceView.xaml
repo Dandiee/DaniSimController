@@ -27,11 +27,29 @@
         <local:SliderView Value="{Binding State.Analog4}" Title="Analog4" Grid.Column="0" Grid.RowSpan="2" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
 
 
-        <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog8.Name}" IsPressed="{Binding State.Button1}" Title="{Binding State.Analog8.Name}" Grid.Column="1" Grid.Row="0" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog7.Name}" IsPressed="{Binding State.Button2}" Title="{Binding State.Analog7.Name}" Grid.Column="2" Grid.Row="0" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button3}" Title="{Binding State.Analog6.Name}" Grid.Column="3" Grid.Row="0" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Analog5.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button4}" Title="{Binding State.Analog5.Name}" Grid.Column="4" Grid.Row="0" Diameter="50" StepCount="24"/>
+        <StackPanel Grid.Column="1" Grid.Row="0">
+            <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog8.Name}" IsPressed="{Binding State.Button1}" 
+                               Title="{Binding State.Analog8.Name}" Diameter="50" StepCount="24"/>
+            <local:LedView IsActive="{Binding State.Led5}"/>
+        </StackPanel>
 
+        <StackPanel Grid.Column="2" Grid.Row="0">
+            <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog7.Name}" IsPressed="{Binding State.Button2}" 
+                               Title="{Binding State.Analog7.Name}" Diameter="50" StepCount="24"/>
+            <local:LedView IsActive="{Binding State.Led4}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" Grid.Row="0">
+            <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button3}" 
+                               Title="{Binding State.Analog6.Name}" Diameter="50" StepCount="24"/>
+            <local:LedView IsActive="{Binding State.Led3}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="4" Grid.Row="0">
+            <local:EncoderView Value="{Binding State.Analog5.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button4}" 
+                               Title="{Binding State.Analog5.Name}" Diameter="50" StepCount="24"/>
+            <local:LedView IsActive="{Binding State.Led2}"/>
+        </StackPanel>
 
         <local:EncoderView Value="{Binding State.Analog10.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button2}" Title="{Binding State.Analog6.Name}" Grid.Column="1" Grid.Row="1" Diameter="50" StepCount="24"/>
         <local:EncoderView Value="{Binding State.Analog9.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button1}" Title="{Binding State.Analog5.Name}" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>

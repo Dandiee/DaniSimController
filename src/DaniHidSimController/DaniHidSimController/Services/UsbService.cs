@@ -14,6 +14,7 @@ namespace DaniHidSimController.Services
     public sealed class UsbService : IUsbService
     {
         public const int PollInterval = 1000;
+        private byte[] _lastSent;
 
         public void Write(byte[] data)
         {
@@ -30,6 +31,8 @@ namespace DaniHidSimController.Services
                     _timer.Start();
                 }
             }
+
+            _lastSent = data;
         }
 
         private readonly Timer _timer;
@@ -50,6 +53,7 @@ namespace DaniHidSimController.Services
                 _timer.Stop();
                 _serialPort = new SerialPort(deviceId, 115200);
                 _serialPort.Open();
+                Write(_lastSent);
                 _isConnected = true;
             }
         }

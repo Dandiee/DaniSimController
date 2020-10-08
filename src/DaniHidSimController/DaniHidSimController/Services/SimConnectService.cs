@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Documents;
 using System.Windows.Interop;
+using DaniHidSimController.Mvvm;
 using Microsoft.FlightSimulator.SimConnect;
 
 namespace DaniHidSimController.Services
@@ -13,15 +12,13 @@ namespace DaniHidSimController.Services
         void Connect(HwndSource hwndSource);
         IntPtr WndProc(IntPtr hWnd, int iMsg, IntPtr hWParam, IntPtr hLParam, ref bool bHandled);
         void TransmitEvent(SimEvents simEvent, uint value);
-        public event EventHandler<SimVarRequest> OnSimVarsChanged;
     }
 
+    public sealed class SimVarReceivedEvent : PubSubEvent<SimVarRequest> { }
     public sealed class SimConnectService : ISimConnectService
     {
-        public event EventHandler<SimVarRequest> OnSimVarsChanged;
-
+        private readonly IEventAggregator _eventAggregator;
         private SimConnect _simConnect;
-        private bool _isInitialized;
 
         private readonly IReadOnlyDictionary<SimVars, SimVarRequest> _simVarsByRequests;
         private readonly IReadOnlyCollection<SimVarRequest> _simVars = new SimVarRequest[]
@@ -39,8 +36,9 @@ namespace DaniHidSimController.Services
             new SimVarRequest<float>(SimVars.GEAR_CENTER_POSITION),
         };
 
-        public SimConnectService()
+        public SimConnectService(IEventAggregator eventAggregator)
         {
+            _eventAggregator = eventAggregator;
             _simVarsByRequests = _simVars.ToDictionary(kvp => kvp.SimVar, kvp => kvp);
         }
 
@@ -57,15 +55,7 @@ namespace DaniHidSimController.Services
         {
             var request = _simVarsByRequests[(SimVars)data.dwRequestID];
             request.Set(data.dwData[0]);
-
-            if (!_isInitialized)
-            {
-                _isInitialized = _simVars.All(s => s.IsInitialized);
-            }
-            else
-            {
-                OnSimVarsChanged?.Invoke(this, request);
-            }
+            _eventAggregator.GetEvent<SimVarReceivedEvent>().Publish(request);
         }
 
         private void OnConnected()
