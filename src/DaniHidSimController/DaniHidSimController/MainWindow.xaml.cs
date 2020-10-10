@@ -18,7 +18,7 @@ namespace DaniHidSimController
             _viewModel = viewModel;
             _simConnectService = simConnectService;
             DataContext = viewModel;
-
+            
             InitializeComponent();
         }
 

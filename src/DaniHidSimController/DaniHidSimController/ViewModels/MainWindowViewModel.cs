@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
+using Microsoft.Extensions.Options;
+using Microsoft.Maps.MapControl.WPF;
+using Microsoft.Maps.MapControl.WPF.Core;
 
 namespace DaniHidSimController.ViewModels
 {
@@ -34,6 +38,7 @@ namespace DaniHidSimController.ViewModels
         public bool IsAutopilotAltitudeEnabled { get; set; }
         public bool IsAutopilotAirspeedEnabled { get; set; }
         public bool IsAutopilotVerticalSpeedEnabled { get; set; }
+        public bool IsAutopilotYawDamperEnabled { get; set; }
 
         public bool IsLeftGearMoving { get; set; }
         public bool IsCenterGearMoving { get; set; }
@@ -47,6 +52,8 @@ namespace DaniHidSimController.ViewModels
         public bool IsBrakeNonZero { get; set; }
 
         public bool IsParkingBrakeEnabled { get; set; }
+
+        public bool IsAutothtottleEnabled { get; set; }
 
 
         private byte byte1;
@@ -65,7 +72,8 @@ namespace DaniHidSimController.ViewModels
                      | ((IsAutopilotHeadingEnabled ? 1 : 0) << 1)
                      | ((IsAutopilotAltitudeEnabled ? 1 : 0) << 2)
                      | ((IsAutopilotAirspeedEnabled ? 1 : 0) << 3)
-                     | ((IsAutopilotVerticalSpeedEnabled ? 1 : 0) << 4);
+                     | ((IsAutopilotVerticalSpeedEnabled ? 1 : 0) << 4)
+                     | ((IsAutopilotYawDamperEnabled ? 1 : 0) << 5);
 
             var b3 = 0
                      | ((IsLeftGearMoving ? 1 : 0) << 0)
@@ -80,7 +88,8 @@ namespace DaniHidSimController.ViewModels
                      | ((IsBrakeNonZero ? 1 : 0) << 7);
 
             var b4 = 0
-                     | ((IsParkingBrakeEnabled ? 1 : 0) << 0);
+                     | ((IsParkingBrakeEnabled ? 1 : 0) << 0)
+                     | ((IsAutothtottleEnabled ? 1 : 0) << 1);
 
             bytes[0] = (byte)b1;
             bytes[1] = (byte)b2;
@@ -97,6 +106,7 @@ namespace DaniHidSimController.ViewModels
     {
         private readonly IHidService _hidService;
         private readonly IUsbService _usbService;
+        private readonly IOptions<SimOptions> _options;
         private readonly IEventAggregator _eventAggregator;
 
         private DevState _lastSentState;
@@ -104,18 +114,29 @@ namespace DaniHidSimController.ViewModels
 
         private long _lastSent = -1;
 
+        public CredentialsProvider CredentialsProvider { get; }
+
         public MainWindowViewModel(
             IHidService hidService,
             DeviceStateViewModel deviceStateViewModel,
             IUsbService usbService,
+            IOptions<SimOptions> options,
             IEventAggregator eventAggregator)
         {
             _hidService = hidService;
             _usbService = usbService;
+            _options = options;
             _eventAggregator = eventAggregator;
+
+            if (string.IsNullOrEmpty(options.Value.BingMapCredentialsProvider))
+                throw new ArgumentException();
 
             State = deviceStateViewModel;
             _lastSentState = new DevState();
+
+            Location = new Location(47.493351, 19.060372);
+
+            CredentialsProvider = new ApplicationIdCredentialsProvider(_options.Value.BingMapCredentialsProvider);
 
             eventAggregator.GetEvent<SimVarReceivedEvent>().Subscribe(OnSimVarReceived);
         }
@@ -130,6 +151,10 @@ namespace DaniHidSimController.ViewModels
 
                 case SimVars.AUTOPILOT_HEADING_LOCK:
                     _lastSentState.IsAutopilotHeadingEnabled = (bool)request.Get();
+                    break;
+
+                case SimVars.AUTOPILOT_ALTITUDE_LOCK:
+                    _lastSentState.IsAutopilotAltitudeEnabled = (bool)request.Get();
                     break;
 
                 case SimVars.AUTOPILOT_AIRSPEED_HOLD:
@@ -172,6 +197,25 @@ namespace DaniHidSimController.ViewModels
                 case SimVars.BRAKE_PARKING_INDICATOR:
                     _lastSentState.IsParkingBrakeEnabled = (bool) request.Get();
                     break;
+
+                case SimVars.AUTOPILOT_THROTTLE_ARM:
+                    _lastSentState.IsAutothtottleEnabled = (bool)request.Get();
+                    break;
+
+                case SimVars.AUTOPILOT_YAW_DAMPER:
+                    _lastSentState.IsAutopilotYawDamperEnabled = (bool)request.Get();
+                    break;
+
+
+                case SimVars.GPS_POSITION_LAT:
+                    var lat = (float) request.Get();
+                    Location = new Location(lat * (180 / Math.PI), Location.Longitude);
+                    break;
+
+                case SimVars.GPS_POSITION_LON:
+                    var lon = (float)request.Get();
+                    Location = new Location(Location.Latitude, lon * (180 / Math.PI));
+                    break;
             }
 
             var newBytes = _lastSentState.GetState();
@@ -179,6 +223,31 @@ namespace DaniHidSimController.ViewModels
             {
                 _usbService.Write(newBytes);
                 _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(_lastSentState);
+            }
+        }
+
+        private DateTime _lastLocationSet;
+
+
+        
+
+        private Location _location;
+        public Location Location
+        {
+            get => _location;
+            set
+            {
+                var elapsed = DateTime.Now - _lastLocationSet;
+                if (elapsed > TimeSpan.FromMilliseconds(2000))
+                {
+                    SetProperty(ref _location, value);
+                    _lastLocationSet = DateTime.Now;
+                }
+                else
+                {
+                    _location = value;
+                }
+
             }
         }
 

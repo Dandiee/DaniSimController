@@ -19,6 +19,8 @@ struct State {
   uint8_t IsAutopilotAltitudeEnabled = 0;
   uint8_t IsAutopilotAirspeedEnabled = 0;
   uint8_t IsAutopilotVerticalSpeedEnabled = 0;
+  uint8_t IsAutopilotYawDamperEnabled = 0;
+
   
   uint8_t IsLeftGearMoving = 0;
   uint8_t IsCenterGearMoving = 0;
@@ -32,6 +34,7 @@ struct State {
   uint8_t IsBrakeNonZero = 0;
 
   uint8_t IsParkingBrakeEnabled = 0;
+  uint8_t IsAutothtottleEnabled = 0;
 };
 
 //SimController simController = SimController(onSimStateChanged);
@@ -221,6 +224,7 @@ void readFromPc()
         _state.IsAutopilotAltitudeEnabled = bitRead(byte2, 2);
         _state.IsAutopilotAirspeedEnabled = bitRead(byte2, 3);
         _state.IsAutopilotVerticalSpeedEnabled = bitRead(byte2, 4);
+        _state.IsAutopilotYawDamperEnabled = bitRead(byte2, 5);
 
         _state.IsLeftGearMoving = bitRead(byte3, 0);
         _state.IsCenterGearMoving = bitRead(byte3, 1);
@@ -234,7 +238,10 @@ void readFromPc()
         _state.IsBrakeNonZero = bitRead(byte3, 7);
 
         _state.IsParkingBrakeEnabled = bitRead(byte4, 0);
+        _state.IsAutothtottleEnabled = bitRead(byte4, 1);
+        
       }
+      
     }
 }
 
@@ -256,6 +263,8 @@ void writeLeds() {
 
   bitWrite(gpio, 0, _state.IsParkingBrakeEnabled);
 
+  bitWrite(gpio, 5, _state.IsAutothtottleEnabled);
+  bitWrite(gpio, 4, _state.IsAutopilotYawDamperEnabled);
 
   digitalWrite(8, _state.IsLeftGearMoving ? blinkState : _state.IsLeftGearOut);
   digitalWrite(9, _state.IsCenterGearMoving ? blinkState : _state.IsCenterGearOut);

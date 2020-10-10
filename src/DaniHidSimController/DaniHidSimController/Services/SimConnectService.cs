@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Interop;
+using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
+using Microsoft.Extensions.Options;
 using Microsoft.FlightSimulator.SimConnect;
 
 namespace DaniHidSimController.Services
@@ -18,6 +20,7 @@ namespace DaniHidSimController.Services
     public sealed class SimConnectService : ISimConnectService
     {
         private readonly IEventAggregator _eventAggregator;
+        private readonly SimOptions _options;
         private SimConnect _simConnect;
 
         private readonly IReadOnlyDictionary<SimVars, SimVarRequest> _simVarsByRequests;
@@ -39,11 +42,18 @@ namespace DaniHidSimController.Services
             new SimVarRequest<float>(SimVars.BRAKE_LEFT_POSITION),
 
             new SimVarRequest<bool>(SimVars.BRAKE_PARKING_INDICATOR),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_THROTTLE_ARM),
+            new SimVarRequest<bool>(SimVars.AUTOPILOT_YAW_DAMPER),
+            new SimVarRequest<float>(SimVars.GPS_POSITION_LAT),
+            new SimVarRequest<float>(SimVars.GPS_POSITION_LON),
         };
 
-        public SimConnectService(IEventAggregator eventAggregator)
+        public SimConnectService(
+            IEventAggregator eventAggregator,
+            IOptions<SimOptions> options)
         {
             _eventAggregator = eventAggregator;
+            _options = options.Value;
             _simVarsByRequests = _simVars.ToDictionary(kvp => kvp.SimVar, kvp => kvp);
         }
 
@@ -183,7 +193,12 @@ namespace DaniHidSimController.Services
         FLAPS_HANDLE_PERCENT,
         BRAKE_LEFT_POSITION,
 
-        BRAKE_PARKING_INDICATOR
+        BRAKE_PARKING_INDICATOR,
+        AUTOPILOT_THROTTLE_ARM,
+        AUTOPILOT_YAW_DAMPER,
+
+        GPS_POSITION_LAT,
+        GPS_POSITION_LON,
     }
 
     public enum MyGroups : uint
