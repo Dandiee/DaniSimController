@@ -9,12 +9,11 @@ namespace DaniHidSimController.ViewModels
             ISimConnectService simConnectService,
             IEventAggregator eventAggregator)
         {
-            Analog5 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
-            Analog6 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
-            Analog7 = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
-            Analog8 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
+            Analog6 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Analog7 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
+            Analog8 = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
             Analog9 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
-            Analog10 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
+            //Analog10 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
 
             eventAggregator.GetEvent<UsbStateWrittenEvent>().Subscribe(state =>
             {
@@ -103,6 +102,13 @@ namespace DaniHidSimController.ViewModels
             set => SetProperty(ref _analog4, value);
         }
 
+        private short _analog5;
+        public short Analog5
+        {
+            get => _analog5;
+            set => SetProperty(ref _analog5, value);
+        }
+
         private bool _led1;
         public bool Led1
         {
@@ -153,13 +159,11 @@ namespace DaniHidSimController.ViewModels
         }
 
 
-        public EncoderValueViewModel Analog5 { get; }
         public EncoderValueViewModel Analog6 { get; }
-
         public EncoderValueViewModel Analog7 { get; }
         public EncoderValueViewModel Analog8 { get; }
         public EncoderValueViewModel Analog9 { get; }
-        public EncoderValueViewModel Analog10 { get; }
+        //public EncoderValueViewModel Analog10 { get; }
 
         public void Apply(DaniDeviceState state)
         {
@@ -174,13 +178,13 @@ namespace DaniHidSimController.ViewModels
             Analog2 = state.Analog2;
             Analog3 = state.Analog3;
             Analog4 = state.Analog4;
+            Analog5 = state.Analog5;
 
-            Analog5.RawValue = state.Analog5;
             Analog6.RawValue = state.Analog6;
             Analog7.RawValue = state.Analog7;
             Analog8.RawValue = state.Analog8;
             Analog9.RawValue = state.Analog9;
-            Analog10.RawValue = state.Analog10;
+            //Analog10.RawValue = state.Analog10;
         }
     }
 }

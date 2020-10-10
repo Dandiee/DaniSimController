@@ -5,18 +5,23 @@
     <Grid>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="100" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="40" />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0">
@@ -24,46 +29,50 @@
             <local:LedView Title="CON" IsActive="True" />
         </StackPanel>
 
-        <local:SliderView Value="{Binding State.Analog4}" Title="Analog4" Grid.Column="0" Grid.RowSpan="2" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
+        <local:SliderView Value="{Binding State.Analog5}" Title="Analog4" Grid.Column="0" 
+                          Grid.RowSpan="3" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
 
 
-        <StackPanel Grid.Column="1" Grid.Row="0">
-            <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog8.Name}" IsPressed="{Binding State.Button1}" 
-                               Title="{Binding State.Analog8.Name}" Diameter="50" StepCount="24"/>
-            <local:LedView IsActive="{Binding State.Led5}"/>
-        </StackPanel>
+        <local:EncoderView Value="{Binding State.Analog9.RawValue}" MappedValue="{Binding State.Analog8.Name}" IsPressed="{Binding State.Button4}" 
+                           Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Diameter="50" StepCount="24"/>
+        <local:LedView IsActive="{Binding State.Led5}" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2"/>
 
-        <StackPanel Grid.Column="2" Grid.Row="0">
-            <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog7.Name}" IsPressed="{Binding State.Button2}" 
-                               Title="{Binding State.Analog7.Name}" Diameter="50" StepCount="24"/>
-            <local:LedView IsActive="{Binding State.Led4}"/>
-        </StackPanel>
+        <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog7.Name}" IsPressed="{Binding State.Button3}" 
+                           Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Diameter="50" StepCount="24"/>
+        <local:LedView IsActive="{Binding State.Led4}" VerticalAlignment="Center" Grid.Column="4" Grid.Row="0"/>
 
-        <StackPanel Grid.Column="3" Grid.Row="0">
-            <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button3}" 
-                               Title="{Binding State.Analog6.Name}" Diameter="50" StepCount="24"/>
-            <local:LedView IsActive="{Binding State.Led3}"/>
-        </StackPanel>
+        <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button2}" 
+                           Grid.Row="0" Grid.Column="5" VerticalAlignment="Center"
+                           Diameter="50" StepCount="24"/>
+        <local:LedView IsActive="{Binding State.Led3}" VerticalAlignment="Center" Grid.Column="6" Grid.Row="0"/>
 
-        <StackPanel Grid.Column="4" Grid.Row="0">
-            <local:EncoderView Value="{Binding State.Analog5.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button4}" 
-                               Title="{Binding State.Analog5.Name}" Diameter="50" StepCount="24"/>
-            <local:LedView IsActive="{Binding State.Led2}"/>
-        </StackPanel>
-
-        <local:EncoderView Value="{Binding State.Analog10.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button2}" Title="{Binding State.Analog6.Name}" Grid.Column="1" Grid.Row="1" Diameter="50" StepCount="24"/>
-        <local:EncoderView Value="{Binding State.Analog9.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button1}" Title="{Binding State.Analog5.Name}" Grid.Column="2" Grid.Row="1" Diameter="50" StepCount="24"/>
-        <local:PotentiometerView Value="{Binding State.Analog3}" Title="Analog3" Grid.Column="3" Grid.Row="1" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="4" Grid.Row="1" Diameter="50"/>
+        <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button1}" 
+                           Grid.Row="0" Grid.Column="7" VerticalAlignment="Center"
+                           Diameter="50" StepCount="24"/>
+        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="8" Grid.Row="0"/>
 
 
-        <StackPanel Orientation="Horizontal" Grid.Column="5" Grid.Row="0">
+        <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog6.Name}"
+                           IsPressed="{Binding State.Button1}" Title="{Binding State.Analog6.Name}" 
+                           Grid.Column="1" Grid.Row="1" Diameter="50" StepCount="24"/>
+
+        <local:PotentiometerView Value="{Binding State.Analog4}" Title="Analog3" Grid.Column="3" Grid.Row="1" Diameter="50"/>
+        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="3" Grid.Row="2"/>
+
+        <local:PotentiometerView Value="{Binding State.Analog3}" Title="Analog2" Grid.Column="5" Grid.Row="1" Diameter="50"/>
+        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="5" Grid.Row="2"/>
+
+        <local:PotentiometerView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="7" Grid.Row="1" Diameter="50"/>
+        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="7" Grid.Row="2"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Column="9" Grid.Row="0">
             <local:ButtonView IsPressed="{Binding State.Button5}" Title="Button #5"/>
             <local:LedView Title="AP" IsActive="{Binding State.Led1}" />
         </StackPanel>
         
 
-        <local:SliderView Value="{Binding State.Analog1}" Title="Analog1" Grid.Column="5" Grid.RowSpan="2" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
+        <local:SliderView Value="{Binding State.Analog1}" Title="Analog1" 
+                          Grid.Column="9" Grid.RowSpan="3" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
 
         <!--<local:ButtonView Grid.Row="0" Grid.Column="0" IsPressed="{Binding State.Button5}" Title="Button #5"/>
         <local:ButtonView Grid.Row="0" Grid.Column="1" IsPressed="{Binding State.Button6}" Title="Button #6"/>

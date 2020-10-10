@@ -2,8 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
-        <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                   TextAlignment="Center" Margin="0 0 0 5"/>
         <Grid Height="{Binding Diameter, RelativeSource={RelativeSource AncestorType=UserControl}}" 
               Width="{Binding Diameter, RelativeSource={RelativeSource AncestorType=UserControl}}">
 
@@ -20,8 +18,10 @@
                                      Angle="{Binding Angle, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                 </Line.RenderTransform>
             </Line>
+
+            <TextBlock Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}}"  TextAlignment="Center" Margin="0 5 0 0"/>
         </Grid>
-        <TextBlock Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}}"  TextAlignment="Center" Margin="0 5 0 0"/>
+        
     </StackPanel>
 </UserControl>
 

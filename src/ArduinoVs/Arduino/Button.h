@@ -16,13 +16,16 @@ public:
   }
 
   void setup() {
+    if (!isGpio) {      
       pinMode(pin, INPUT_PULLUP);
+    }
   }
 
   bool checkState(uint16_t gpio) 
   {
     uint8_t state = isGpio ? bitRead(gpio, pin) : digitalRead(pin);
 
+    
     if (isInverted) state = !state;
     
     bool isChanged = false;
@@ -30,7 +33,6 @@ public:
     if (state != lastKnownState) // does it differ from the previous measurement?
     {
       unsigned long now = millis();
-      Serial.println("báltozott");
       if ((now - lastChangedAt) > BUTTON_COOLDOWN) // okay, but enough time passed since the last change?
       {
         if (lastKnownState && !state)

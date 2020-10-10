@@ -7,11 +7,6 @@
         Title="Dani Sim - HID">
     <Grid>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="500"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-
         <views:DeviceView Grid.Row="0" Grid.Column="0" Margin="10"/>
 
     </Grid>

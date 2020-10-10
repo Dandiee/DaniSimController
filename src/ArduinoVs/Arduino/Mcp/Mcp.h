@@ -67,7 +67,7 @@ public:
 			readByte(INTCAPB);
 		}
 
-		printSettings();
+		// printSettings();
 	}
 
 	void printSettings() {
@@ -113,7 +113,7 @@ public:
 		writeWord(GPIOA, value);
 		_lastKnownGpio = value;
 	}
-
+	
 
 private:
 	McpSettings _settings;

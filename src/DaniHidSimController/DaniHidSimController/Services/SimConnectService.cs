@@ -34,6 +34,11 @@ namespace DaniHidSimController.Services
             new SimVarRequest<float>(SimVars.GEAR_LEFT_POSITION),
             new SimVarRequest<float>(SimVars.GEAR_RIGHT_POSITION),
             new SimVarRequest<float>(SimVars.GEAR_CENTER_POSITION),
+
+            new SimVarRequest<float>(SimVars.FLAPS_HANDLE_PERCENT),
+            new SimVarRequest<float>(SimVars.BRAKE_LEFT_POSITION),
+
+            new SimVarRequest<bool>(SimVars.BRAKE_PARKING_INDICATOR),
         };
 
         public SimConnectService(IEventAggregator eventAggregator)
@@ -78,7 +83,9 @@ namespace DaniHidSimController.Services
                     simVar.SimConnectType,
                     0,
                     SimConnect.SIMCONNECT_UNUSED);
+                
                 methodInfo.MakeGenericMethod(simVar.ClrType).Invoke(_simConnect, new object[] {simVar.SimVar});
+
                 _simConnect.RequestDataOnSimObject(
                     simVar.SimVar,
                     simVar.SimVar, 
@@ -171,7 +178,12 @@ namespace DaniHidSimController.Services
 
         GEAR_LEFT_POSITION,
         GEAR_RIGHT_POSITION,
-        GEAR_CENTER_POSITION
+        GEAR_CENTER_POSITION,
+
+        FLAPS_HANDLE_PERCENT,
+        BRAKE_LEFT_POSITION,
+
+        BRAKE_PARKING_INDICATOR
     }
 
     public enum MyGroups : uint
