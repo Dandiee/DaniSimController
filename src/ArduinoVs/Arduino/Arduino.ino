@@ -14,6 +14,10 @@ void onButtonPressed(Button sender);
 void onSimStateChanged(byte key, int value);
 
 struct State {
+
+  uint8_t IsDaniClientConnected = 0;
+  uint8_t IsSimConnectConnected = 0;
+  
   uint8_t IsAutopilotMasterEnabled = 0;
   uint8_t IsAutopilotHeadingEnabled = 0;
   uint8_t IsAutopilotAltitudeEnabled = 0;
@@ -218,6 +222,9 @@ void readFromPc()
         uint8_t byte2 = buffer[1];
         uint8_t byte3 = buffer[2];
         uint8_t byte4 = buffer[3];
+
+        _state.IsDaniClientConnected = bitRead(byte1, 0);
+        _state.IsSimConnectConnected = bitRead(byte1, 1);
      
         _state.IsAutopilotMasterEnabled = bitRead(byte2, 0);
         _state.IsAutopilotHeadingEnabled = bitRead(byte2, 1);
@@ -246,33 +253,49 @@ void readFromPc()
 }
 
 void writeLeds() {
-  uint16_t gpio = 0;
-
+  
+  
   long m = millis();
   long blinkState = (m / 125) % 2 == 0;
 
-  bitWrite(gpio, 7, _state.IsBrakeNonZero);
-  bitWrite(gpio, 8, _state.IsFlapNonZero);
+  uint16_t gpio = 0;
+  bitWrite(gpio, 15, 1); // always on
+
+    digitalWrite(8, LOW);
+    digitalWrite(9, LOW);
+    digitalWrite(10, LOW);
+
+  if (!_state.IsDaniClientConnected)
+  {
+    bitWrite(gpio, 14, LOW); // no client
+  }
+  else if (!_state.IsSimConnectConnected)
+  {
+    bitWrite(gpio, 14, blinkState); // no sim
+  }
+  else
+  {
+    bitWrite(gpio, 14, HIGH); // all ok
+    
+    bitWrite(gpio, 7, _state.IsBrakeNonZero);
+    bitWrite(gpio, 8, _state.IsFlapNonZero);
+    
+    bitWrite(gpio, 9, _state.IsAutopilotMasterEnabled);
+    bitWrite(gpio, 10, _state.IsAutopilotHeadingEnabled);
+    bitWrite(gpio, 11, _state.IsAutopilotAltitudeEnabled);
+    bitWrite(gpio, 12, _state.IsAutopilotAirspeedEnabled);
+    bitWrite(gpio, 13, _state.IsAutopilotVerticalSpeedEnabled);
   
-  bitWrite(gpio, 9, _state.IsAutopilotMasterEnabled);
-  bitWrite(gpio, 10, _state.IsAutopilotHeadingEnabled);
-  bitWrite(gpio, 11, _state.IsAutopilotAltitudeEnabled);
-  bitWrite(gpio, 12, _state.IsAutopilotAirspeedEnabled);
-  bitWrite(gpio, 13, _state.IsAutopilotVerticalSpeedEnabled);
-
-
-  bitWrite(gpio, 0, _state.IsParkingBrakeEnabled);
-
-  bitWrite(gpio, 5, _state.IsAutothtottleEnabled);
-  bitWrite(gpio, 4, _state.IsAutopilotYawDamperEnabled);
-
-  digitalWrite(8, _state.IsLeftGearMoving ? blinkState : _state.IsLeftGearOut);
-  digitalWrite(9, _state.IsCenterGearMoving ? blinkState : _state.IsCenterGearOut);
-  digitalWrite(10, _state.IsRightGearMoving ? blinkState : _state.IsRightGearOut);
-
-/*  digitalWrite(8, _state.IsLeftGearOut);
-  digitalWrite(9, _state.IsCenterGearOut);
-  digitalWrite(10, _state.IsRightGearOut);*/
+  
+    bitWrite(gpio, 0, _state.IsParkingBrakeEnabled);
+  
+    bitWrite(gpio, 5, _state.IsAutothtottleEnabled);
+    bitWrite(gpio, 4, _state.IsAutopilotYawDamperEnabled);
+  
+    digitalWrite(8, _state.IsLeftGearMoving ? blinkState : _state.IsLeftGearOut);
+    digitalWrite(9, _state.IsCenterGearMoving ? blinkState : _state.IsCenterGearOut);
+    digitalWrite(10, _state.IsRightGearMoving ? blinkState : _state.IsRightGearOut);
+  }
 
   mcpOutput.writeGpio(gpio);    
 }

@@ -3,21 +3,52 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:DaniHidSimController.Views"
         xmlns:wpf1="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         Width="800" Height="600"
         Background="#777777"
         Title="Dani Sim - HID">
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Closing">
+            <b:InvokeCommandAction Command="{Binding ClosingCommand}"/>
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
     <Grid>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
         
         <views:DeviceView Grid.Row="0" Grid.Column="0" Margin="10"/>
         <wpf1:Map Grid.Column="1" Center="{Binding Location, Mode=TwoWay}" ZoomLevel="8"
                   Mode="AerialWithLabels"
+                  AnimationLevel="Full"
+                  Grid.RowSpan="2"
+                  Grid.Row="0"
+                  UseInertia="True"
                   CredentialsProvider="{Binding CredentialsProvider}"
-                  Heading="-1"/>
+                  Heading="-1">
+            <!--<wpf1:MapPolygon Fill="Blue" Stroke="Green" StrokeThickness="5" 
+                          Locations="{Binding DataContext.Locations, RelativeSource={RelativeSource AncestorType=Window}}" 
+                          Opacity="0.7"/>-->
+            <wpf1:Pushpin Location="{Binding Location}"/>
+        </wpf1:Map>
 
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox IsReadOnly="True" Text="{Binding Location}" />
+            <Button Command="{Binding CheckLocationCommand}" Grid.Column="1" Content="Maps Time!"/>
+
+        </Grid>
+        
     </Grid>
 </Window>

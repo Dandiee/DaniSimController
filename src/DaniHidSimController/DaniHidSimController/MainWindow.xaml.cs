@@ -32,7 +32,7 @@ namespace DaniHidSimController
 
             try
             {
-                _simConnectService.Connect(source);
+                _simConnectService.SetHandle(source);
             }
             catch (Exception exception)
             {

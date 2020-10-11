@@ -1,8 +1,11 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Management;
-using System.Timers;
+using System.Threading.Tasks;
+using DaniHidSimController.Models;
+using DaniHidSimController.Mvvm;
+using Microsoft.Extensions.Options;
 
 namespace DaniHidSimController.Services
 {
@@ -11,10 +14,24 @@ namespace DaniHidSimController.Services
         void Write(byte[] data);
     }
 
+    public sealed class UsbConnectionChangedEvent : PubSubEvent<bool> { }
     public sealed class UsbService : IUsbService
     {
-        public const int PollInterval = 1000;
-        private byte[] _lastSent;
+        private readonly IEventAggregator _eventAggregator;
+        private readonly SimOptions _options;
+
+        private bool _isConnected;
+        private SerialPort _serialPort;
+
+        public UsbService(
+            IEventAggregator eventAggregator,
+            IOptions<SimOptions> options)
+        {
+            _eventAggregator = eventAggregator;
+            _options = options.Value;
+
+            StartConnect();
+        }
 
         public void Write(byte[] data)
         {
@@ -24,38 +41,42 @@ namespace DaniHidSimController.Services
                 {
                     _serialPort.Write(data, 0, data.Length);
                 }
-                catch 
+                catch
                 {
-                    _serialPort.Dispose();
                     _isConnected = false;
-                    _timer.Start();
+                    _serialPort.Dispose();
+                    StartConnect();
                 }
             }
-
-            _lastSent = data;
         }
 
-        private readonly Timer _timer;
-        private bool _isConnected;
-        private SerialPort _serialPort;
+        private void StartConnect() => Task.Run(async () => await TryConnect());
 
-        public UsbService()
-        {
-            _timer = new Timer(PollInterval);
-            _timer.Elapsed += OnTick;
-            _timer.Start();
-        }
-
-        private void OnTick(object sender, ElapsedEventArgs e)
+        private async Task TryConnect()
         {
             if (TryGetDeviceId(out var deviceId))
             {
-                _timer.Stop();
-                _serialPort = new SerialPort(deviceId, 115200);
-                _serialPort.Open();
-                Write(_lastSent);
-                _isConnected = true;
+                try
+                {
+                    Connect(deviceId);
+                    return;
+                }
+                catch
+                {
+                    Debug.WriteLine("USB Connection faield.");
+                }
             }
+
+            await Task.Delay(_options.UsbConnectionIntervalInMs);
+            await TryConnect();
+        }
+
+        private void Connect(string deviceId)
+        {
+            _serialPort = new SerialPort(deviceId, 115200);
+            _serialPort.Open();
+            _isConnected = true;
+            _eventAggregator.GetEvent<UsbConnectionChangedEvent>().Publish(true);
         }
 
         private bool TryGetDeviceId(out string deviceId)

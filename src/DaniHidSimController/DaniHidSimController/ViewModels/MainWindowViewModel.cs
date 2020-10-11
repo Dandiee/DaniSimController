@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Input;
 using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
@@ -33,6 +36,9 @@ namespace DaniHidSimController.ViewModels
 
     public class DevState
     {
+        public bool IsDaniClientConnected { get; set; }
+        public bool IsSimConnectConnected { get; set; }
+
         public bool IsAutopilotMasterEnabled { get; set; }
         public bool IsAutopilotHeadingEnabled { get; set; }
         public bool IsAutopilotAltitudeEnabled { get; set; }
@@ -65,7 +71,9 @@ namespace DaniHidSimController.ViewModels
 
         public byte[] GetState()
         {
-            var b1 = 0;
+            var b1 = 0
+                     | ((IsDaniClientConnected ? 1 : 0) << 0)
+                     | ((IsSimConnectConnected ? 1 : 0) << 1);
 
             var b2 = 0
                      | ((IsAutopilotMasterEnabled ? 1 : 0) << 0)
@@ -84,7 +92,7 @@ namespace DaniHidSimController.ViewModels
                      | ((IsCenterGearOut ? 1 : 0) << 4)
                      | ((IsRightGearOut ? 1 : 0) << 5)
 
-                     | ((IsFlapNonZero? 1 : 0) << 6)
+                     | ((IsFlapNonZero ? 1 : 0) << 6)
                      | ((IsBrakeNonZero ? 1 : 0) << 7);
 
             var b4 = 0
@@ -112,6 +120,9 @@ namespace DaniHidSimController.ViewModels
         private DevState _lastSentState;
         public DeviceStateViewModel State { get; }
 
+        public ICommand CheckLocationCommand { get; }
+        public ICommand ClosingCommand { get; }
+
         private long _lastSent = -1;
 
         public CredentialsProvider CredentialsProvider { get; }
@@ -134,11 +145,45 @@ namespace DaniHidSimController.ViewModels
             State = deviceStateViewModel;
             _lastSentState = new DevState();
 
+            Locations = new LocationCollection();
             Location = new Location(47.493351, 19.060372);
+            Locations.Add(Location);
+            CheckLocationCommand = new DelegateCommand(CheckLocation);
 
             CredentialsProvider = new ApplicationIdCredentialsProvider(_options.Value.BingMapCredentialsProvider);
 
             eventAggregator.GetEvent<SimVarReceivedEvent>().Subscribe(OnSimVarReceived);
+            eventAggregator.GetEvent<SimConnectConnectionChangedEvent>().Subscribe(OnSimConnectConnectionChanged);
+            eventAggregator.GetEvent<UsbConnectionChangedEvent>().Subscribe(OnUsbConnectionChanged);
+
+            ClosingCommand = new DelegateCommand(Closing);
+        }
+
+        private void Closing()
+        {
+            _lastSentState.IsSimConnectConnected = false;
+            _lastSentState.IsDaniClientConnected = false;
+            WriteState();
+        }
+
+        private void OnSimConnectConnectionChanged(bool isConnected)
+        {
+            _lastSentState.IsSimConnectConnected = isConnected;
+            WriteState();
+        }
+
+        private void OnUsbConnectionChanged(bool isConnected)
+        {
+            _lastSentState.IsDaniClientConnected = isConnected;
+            WriteState();
+        }
+
+        private void CheckLocation()
+        {
+            var url =
+                $"https://www.google.com/maps/search/{Location.Latitude}+{Location.Longitude}";
+            Process.Start(
+                new ProcessStartInfo(url) { UseShellExecute = true });
         }
 
         private unsafe void OnSimVarReceived(SimVarRequest request)
@@ -195,7 +240,7 @@ namespace DaniHidSimController.ViewModels
                     break;
 
                 case SimVars.BRAKE_PARKING_INDICATOR:
-                    _lastSentState.IsParkingBrakeEnabled = (bool) request.Get();
+                    _lastSentState.IsParkingBrakeEnabled = (bool)request.Get();
                     break;
 
                 case SimVars.AUTOPILOT_THROTTLE_ARM:
@@ -208,7 +253,7 @@ namespace DaniHidSimController.ViewModels
 
 
                 case SimVars.GPS_POSITION_LAT:
-                    var lat = (float) request.Get();
+                    var lat = (float)request.Get();
                     Location = new Location(lat * (180 / Math.PI), Location.Longitude);
                     break;
 
@@ -218,18 +263,22 @@ namespace DaniHidSimController.ViewModels
                     break;
             }
 
+            WriteState();
+
+        }
+
+        private void WriteState()
+        {
             var newBytes = _lastSentState.GetState();
-            if (true)
-            {
-                _usbService.Write(newBytes);
-                _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(_lastSentState);
-            }
+            _usbService.Write(newBytes);
+            _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(_lastSentState);
         }
 
         private DateTime _lastLocationSet;
 
 
-        
+        public LocationCollection Locations { get; }
+
 
         private Location _location;
         public Location Location
@@ -238,10 +287,12 @@ namespace DaniHidSimController.ViewModels
             set
             {
                 var elapsed = DateTime.Now - _lastLocationSet;
-                if (elapsed > TimeSpan.FromMilliseconds(2000))
+                if (elapsed > TimeSpan.FromMilliseconds(20))
                 {
                     SetProperty(ref _location, value);
                     _lastLocationSet = DateTime.Now;
+                    //Locations.Clear();
+                    Locations.Add(value);
                 }
                 else
                 {
