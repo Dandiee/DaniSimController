@@ -15,40 +15,49 @@
     <Grid>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="550" MinWidth="450" MaxWidth="700"/>
+            <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="300" MinHeight="250" MaxHeight="350"/>
+            <RowDefinition Height="5"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <views:DeviceView Grid.Row="0" Grid.Column="0" Margin="10"/>
-        <wpf1:Map Grid.Column="1" Center="{Binding Location, Mode=TwoWay}" ZoomLevel="8"
+        <views:DeviceView Grid.Row="0" Grid.Column="0" />
+        <GridSplitter Grid.RowSpan="3" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch"
+                      Background="#333333"/>
+        <wpf1:Map Grid.Column="2" Center="{Binding Location, Mode=TwoWay}" ZoomLevel="8"
+                  
                   Mode="AerialWithLabels"
                   AnimationLevel="Full"
-                  Grid.RowSpan="2"
+                  Grid.RowSpan="3"
                   Grid.Row="0"
                   UseInertia="True"
                   CredentialsProvider="{Binding CredentialsProvider}"
                   Heading="-1">
-            <!--<wpf1:MapPolygon Fill="Blue" Stroke="Green" StrokeThickness="5" 
-                          Locations="{Binding DataContext.Locations, RelativeSource={RelativeSource AncestorType=Window}}" 
-                          Opacity="0.7"/>-->
             <wpf1:Pushpin Location="{Binding Location}"/>
         </wpf1:Map>
 
-        <Grid Grid.Row="1" Grid.Column="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Column="0" Grid.Row="1" VerticalAlignment="Stretch" 
+                      HorizontalAlignment="Stretch" Background="#333333"/>
 
-            <TextBox IsReadOnly="True" Text="{Binding Location}" />
-            <Button Command="{Binding CheckLocationCommand}" Grid.Column="1" Content="Maps Time!"/>
+        <StackPanel Grid.Row="2" Grid.Column="0" Margin="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        </Grid>
-        
+                <TextBlock Text="Coords" VerticalAlignment="Center" FontWeight="Bold" Margin="0 0 10 0"/>
+                <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Location}" VerticalContentAlignment="Center" />
+                <Button Grid.Column="2" Command="{Binding CheckLocationCommand}" Content="Maps Time!" Padding="5"/>
+
+            </Grid>
+        </StackPanel>
+
     </Grid>
 </Window>

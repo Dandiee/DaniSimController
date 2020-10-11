@@ -9,14 +9,32 @@ namespace DaniHidSimController.ViewModels
             ISimConnectService simConnectService,
             IEventAggregator eventAggregator)
         {
-            Analog6 = new EncoderValueViewModel(simConnectService, SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
-            Analog7 = new EncoderValueViewModel(simConnectService, SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
-            Analog8 = new EncoderValueViewModel(simConnectService, SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
-            Analog9 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
-            //Analog10 = new EncoderValueViewModel(simConnectService, SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
+            Analog6 = new EncoderViewModel(simConnectService, "HDG", state => state.Analog6, 0,
+                SimEvents.HEADING_BUG_INC, SimEvents.HEADING_BUG_DEC);
+            Analog7 = new EncoderViewModel(simConnectService, "ALT", state => state.Analog7, 1,
+                SimEvents.AP_ALT_VAR_INC, SimEvents.AP_ALT_VAR_DEC);
+            Analog8 = new EncoderViewModel(simConnectService, "SPD", state => state.Analog8, 2,
+                SimEvents.AP_SPD_VAR_INC, SimEvents.AP_SPD_VAR_DEC);
+            Analog9 = new EncoderViewModel(simConnectService, "VSP", state => state.Analog9, 3,
+                SimEvents.AP_VS_VAR_INC, SimEvents.AP_VS_VAR_DEC);
+
+            Analog1 = new PotentiometerViewModel(state => state.Analog1);
+            Analog2 = new PotentiometerViewModel(state => state.Analog2);
+            Analog3 = new PotentiometerViewModel(state => state.Analog3);
+            Analog4 = new PotentiometerViewModel(state => state.Analog4);
+            Analog5 = new PotentiometerViewModel(state => state.Analog5);
+
+            Button5  = new ButtonViewModel(4);
+            Button6  = new ButtonViewModel(5);
+            Button7  = new ButtonViewModel(6);
+            Button8  = new ButtonViewModel(7);
+            Button9  = new ButtonViewModel(8);
+            Button10 = new ButtonViewModel(9);
+            Button11 = new ButtonViewModel(10);
+            Button12 = new ButtonViewModel(11);
 
             eventAggregator.GetEvent<UsbStateWrittenEvent>().Subscribe(state =>
-            {
+            {     
                 Led1 = state.IsAutopilotMasterEnabled;
                 Led2 = state.IsAutopilotHeadingEnabled;
                 Led3 = state.IsAutopilotAltitudeEnabled;
@@ -25,89 +43,25 @@ namespace DaniHidSimController.ViewModels
             });
         }
 
-        private string _bytesText;
-        public string BytesText
-        {
-            get => _bytesText;
-            set => SetProperty(ref _bytesText, value);
-        }
+        public ButtonViewModel Button5 { get; }
+        public ButtonViewModel Button6 { get; }
+        public ButtonViewModel Button7 { get; }
+        public ButtonViewModel Button8 { get; }
+        public ButtonViewModel Button9 { get; }
+        public ButtonViewModel Button10 { get; }
+        public ButtonViewModel Button11 { get; }
+        public ButtonViewModel Button12 { get; }
 
-        private bool _button1;
-        public bool Button1
-        {
-            get => _button1;
-            set => SetProperty(ref _button1, value);
-        }
+        public PotentiometerViewModel Analog1 { get; }
+        public PotentiometerViewModel Analog2 { get; }
+        public PotentiometerViewModel Analog3 { get; }
+        public PotentiometerViewModel Analog4 { get; }
+        public PotentiometerViewModel Analog5 { get; }
 
-        private bool _button2;
-        public bool Button2
-        {
-            get => _button2;
-            set => SetProperty(ref _button2, value);
-        }
-
-        private bool _button3;
-        public bool Button3
-        {
-            get => _button3;
-            set => SetProperty(ref _button3, value);
-        }
-
-        private bool _button4;
-        public bool Button4
-        {
-            get => _button4;
-            set => SetProperty(ref _button4, value);
-        }
-
-        private bool _button5;
-        public bool Button5
-        {
-            get => _button5;
-            set => SetProperty(ref _button5, value);
-        }
-
-        private bool _button6;
-        public bool Button6
-        {
-            get => _button6;
-            set => SetProperty(ref _button6, value);
-        }
-
-        private short _analog1;
-        public short Analog1
-        {
-            get => _analog1;
-            set => SetProperty(ref _analog1, value);
-        }
-
-        private short _analog2;
-        public short Analog2
-        {
-            get => _analog2;
-            set => SetProperty(ref _analog2, value);
-        }
-
-        private short _analog3;
-        public short Analog3
-        {
-            get => _analog3;
-            set => SetProperty(ref _analog3, value);
-        }
-
-        private short _analog4;
-        public short Analog4
-        {
-            get => _analog4;
-            set => SetProperty(ref _analog4, value);
-        }
-
-        private short _analog5;
-        public short Analog5
-        {
-            get => _analog5;
-            set => SetProperty(ref _analog5, value);
-        }
+        public EncoderViewModel Analog6 { get; }
+        public EncoderViewModel Analog7 { get; }
+        public EncoderViewModel Analog8 { get; }
+        public EncoderViewModel Analog9 { get; }
 
         private bool _led1;
         public bool Led1
@@ -158,33 +112,29 @@ namespace DaniHidSimController.ViewModels
             set => SetProperty(ref _led7, value);
         }
 
-
-        public EncoderValueViewModel Analog6 { get; }
-        public EncoderValueViewModel Analog7 { get; }
-        public EncoderValueViewModel Analog8 { get; }
-        public EncoderValueViewModel Analog9 { get; }
-        //public EncoderValueViewModel Analog10 { get; }
+        
 
         public void Apply(DaniDeviceState state)
         {
-            Button1 = (state.ButtonStates & 1) == 1;
-            Button2 = (state.ButtonStates & 2) == 2;
-            Button3 = (state.ButtonStates & 4) == 4;
-            Button4 = (state.ButtonStates & 8) == 8;
-            Button5 = (state.ButtonStates & 16) == 16;
-            Button6 = (state.ButtonStates & 32) == 32;
+            Button5.Update(state);
+            Button6.Update(state);
+            Button7.Update(state);
+            Button8.Update(state);
+            Button9.Update(state);
+            Button10.Update(state);
+            Button11.Update(state);
+            Button12.Update(state);
 
-            Analog1 = state.Analog1;
-            Analog2 = state.Analog2;
-            Analog3 = state.Analog3;
-            Analog4 = state.Analog4;
-            Analog5 = state.Analog5;
+            Analog1.Update(state);
+            Analog2.Update(state);
+            Analog3.Update(state);
+            Analog4.Update(state);
+            Analog5.Update(state);
 
-            Analog6.RawValue = state.Analog6;
-            Analog7.RawValue = state.Analog7;
-            Analog8.RawValue = state.Analog8;
-            Analog9.RawValue = state.Analog9;
-            //Analog10.RawValue = state.Analog10;
+            Analog6.Update(state);
+            Analog7.Update(state);
+            Analog8.Update(state);
+            Analog9.Update(state);
         }
     }
 }

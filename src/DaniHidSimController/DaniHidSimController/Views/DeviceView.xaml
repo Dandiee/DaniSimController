@@ -2,96 +2,126 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:DaniHidSimController.Views">
-    <Grid>
+    <Border Background="#DDDDDD" Padding="10 10 10 20">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />   
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80" />
-            <ColumnDefinition Width="70" />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="70" />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="70" />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="70" />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="80" />
-        </Grid.ColumnDefinitions>
-
-        <Grid.RowDefinitions>
-            <RowDefinition Height="100" />
-            <RowDefinition Height="50" />
-            <RowDefinition Height="40" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0">
-            <local:LedView Title="PWS" IsActive="True" />
-            <local:LedView Title="CON" IsActive="True" />
-        </StackPanel>
-
-        <local:SliderView Value="{Binding State.Analog5}" Title="Analog4" Grid.Column="0" 
-                          Grid.RowSpan="3" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
-
-
-        <local:EncoderView Value="{Binding State.Analog9.RawValue}" MappedValue="{Binding State.Analog8.Name}" IsPressed="{Binding State.Button4}" 
-                           Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Diameter="50" StepCount="24"/>
-        <local:LedView IsActive="{Binding State.Led5}" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2"/>
-
-        <local:EncoderView Value="{Binding State.Analog8.RawValue}" MappedValue="{Binding State.Analog7.Name}" IsPressed="{Binding State.Button3}" 
-                           Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Diameter="50" StepCount="24"/>
-        <local:LedView IsActive="{Binding State.Led4}" VerticalAlignment="Center" Grid.Column="4" Grid.Row="0"/>
-
-        <local:EncoderView Value="{Binding State.Analog7.RawValue}" MappedValue="{Binding State.Analog6.Name}" IsPressed="{Binding State.Button2}" 
-                           Grid.Row="0" Grid.Column="5" VerticalAlignment="Center"
-                           Diameter="50" StepCount="24"/>
-        <local:LedView IsActive="{Binding State.Led3}" VerticalAlignment="Center" Grid.Column="6" Grid.Row="0"/>
-
-        <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog5.Name}" IsPressed="{Binding State.Button1}" 
-                           Grid.Row="0" Grid.Column="7" VerticalAlignment="Center"
-                           Diameter="50" StepCount="24"/>
-        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="8" Grid.Row="0"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" MinHeight="20" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" MinHeight="20" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
 
-        <local:EncoderView Value="{Binding State.Analog6.RawValue}" MappedValue="{Binding State.Analog6.Name}"
-                           IsPressed="{Binding State.Button1}" Title="{Binding State.Analog6.Name}" 
-                           Grid.Column="1" Grid.Row="1" Diameter="50" StepCount="24"/>
+            <!-- Left bar -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 -30 0 0"
+                        Grid.Row="0" Grid.Column="0">
+                <local:LedView IsActive="True" Margin="0 0 1 0" />
+                <local:LedView IsActive="True" Margin="1 0 0 0" />
+            </StackPanel>
 
-        <local:PotentiometerView Value="{Binding State.Analog4}" Title="Analog3" Grid.Column="3" Grid.Row="1" Diameter="50"/>
-        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="3" Grid.Row="2"/>
+            <local:SliderView DataContext="{Binding State.Analog5}" KnobColor="#000000" Foreground="#FFFFFF" Grid.Row="1" Grid.Column="0" Grid.RowSpan="6"/>
 
-        <local:PotentiometerView Value="{Binding State.Analog3}" Title="Analog2" Grid.Column="5" Grid.Row="1" Diameter="50"/>
-        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="5" Grid.Row="2"/>
+            <!-- First row -->
+            <local:EncoderView DataContext="{Binding State.Analog9}" Grid.Row="0" Grid.Column="2" KnobColor="#AAAAAA" Foreground="#000000" />
+            <local:LedView IsActive="{Binding State.Led5}" Margin="3 0 0 0"  Grid.Row="0" Grid.Column="3"/>
 
-        <local:PotentiometerView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="7" Grid.Row="1" Diameter="50"/>
-        <local:LedView IsActive="{Binding State.Led2}" VerticalAlignment="Center" Grid.Column="7" Grid.Row="2"/>
+            <local:EncoderView DataContext="{Binding State.Analog8}" Grid.Row="0" Grid.Column="5" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView IsActive="{Binding State.Led4}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="6"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Column="9" Grid.Row="0">
-            <local:ButtonView IsPressed="{Binding State.Button5}" Title="Button #5"/>
-            <local:LedView Title="AP" IsActive="{Binding State.Led1}" />
-        </StackPanel>
-        
+            <local:EncoderView DataContext="{Binding State.Analog7}" Grid.Row="0" Grid.Column="8" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView IsActive="{Binding State.Led3}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="9"/>
 
-        <local:SliderView Value="{Binding State.Analog1}" Title="Analog1" 
-                          Grid.Column="9" Grid.RowSpan="3" KnobWidth="30" KnobHeight="40" Grid.Row="1" />
+            <local:EncoderView DataContext="{Binding State.Analog6}" Grid.Row="0" Grid.Column="11" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 0" Grid.Row="0" Grid.Column="12"/>
 
-        <!--<local:ButtonView Grid.Row="0" Grid.Column="0" IsPressed="{Binding State.Button5}" Title="Button #5"/>
-        <local:ButtonView Grid.Row="0" Grid.Column="1" IsPressed="{Binding State.Button6}" Title="Button #6"/>
 
-        
-        <local:PotentiometerView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="3" Grid.Row="1" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Analog5}" Title="Analog5" Grid.Column="3" Grid.Row="2" Diameter="50"/>
-        <local:PotentiometerView Value="{Binding State.Analog4}" Title="Analog4" Grid.Column="3" Grid.Row="3" Diameter="50"/>
+            <!-- Second row -->
+            <local:EncoderView DataContext="{Binding State.Analog6}" Grid.Row="2" Grid.Column="2" KnobColor="#000000" Foreground="#FFFFFF"/>
 
-        <local:SliderView Value="{Binding State.Analog1}" Title="Analog1" Grid.Column="4" Grid.RowSpan="4" KnobWidth="30" KnobHeight="40" Grid.Row="0" />
-        <local:SliderView Value="{Binding State.Analog2}" Title="Analog2" Grid.Column="5" Grid.RowSpan="4" KnobWidth="30" KnobHeight="40" Grid.Row="0" />
-        
-        <local:SliderView Value="{Binding State.Analog3}" Title="Analog3" Grid.Column="0" Grid.ColumnSpan="6" KnobWidth="30" KnobHeight="40" Grid.Row="4">
-            <local:SliderView.LayoutTransform>
-                <RotateTransform Angle="90" CenterX=".5" CenterY=".5"></RotateTransform>
-            </local:SliderView.LayoutTransform>
-        </local:SliderView>-->
+            <local:PotentiometerView DataContext="{Binding State.Analog4}" Grid.Row="2" Grid.Column="5" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="5"/>
 
-        <!--<TextBox Text="{Binding State.BytesText}" Background="#555555" Foreground="#999999" AcceptsReturn="True" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="4"/>-->
+            <local:PotentiometerView DataContext="{Binding State.Analog3}" Grid.Row="2" Grid.Column="8" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="8"/>
 
-    </Grid>
+            <local:PotentiometerView DataContext="{Binding State.Analog2}" Grid.Row="2" Grid.Column="11" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="11"/>
+
+
+            <!-- Third row -->
+            <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="9" Grid.RowSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="0"/>
+                <local:ButtonView DataContext="{Binding State.Button5}" Grid.Row="1" Grid.Column="0"/>
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="1"/>
+                <local:ButtonView DataContext="{Binding State.Button6}" Grid.Row="1" Grid.Column="1"/>
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="2"/>
+                <local:ButtonView DataContext="{Binding State.Button7}" Grid.Row="1" Grid.Column="2"/>
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="3"/>
+                <local:ButtonView DataContext="{Binding State.Button8}" Grid.Row="1" Grid.Column="3"/>
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="4"/>
+                <local:ButtonView DataContext="{Binding State.Button9}" Grid.Row="1" Grid.Column="4"/>
+
+                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="5"/>
+                <local:ButtonView DataContext="{Binding State.Button10}" Grid.Row="1" Grid.Column="5"/>
+
+            </Grid>
+
+            <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="5" Grid.Column="11"/>
+            <Grid Grid.Row="6" Grid.Column="11">
+                <local:ButtonView DataContext="{Binding State.Button12}"/>
+                <local:LedView IsActive="{Binding State.Led2}" Margin="-50 0 0 -25" />
+                <local:LedView IsActive="{Binding State.Led2}" Margin="50 0 0 -25" />
+            </Grid>
+
+
+            <!-- Right bar -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 -30 0 0"
+                        Grid.Row="0" Grid.Column="14" >
+                <local:ButtonView DataContext="{Binding State.Button11}" Margin="0 0 3 0"/>
+                <local:LedView IsActive="{Binding State.Led1}"  Margin="3 0 0 0"/>
+            </StackPanel>
+            <local:SliderView DataContext="{Binding State.Analog1}" KnobColor="#000000" Foreground="#FFFFFF" 
+                              Grid.Row="1" Grid.Column="14" Grid.RowSpan="6" />
+
+        </Grid>
+    </Border>
 </UserControl>

@@ -1,16 +1,21 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 
 namespace DaniHidSimController.Views
 {
     public partial class EncoderView
     {
+        private const double DefaultDiameter = 50;
+        private const double DefaultRadius = DefaultDiameter / 2;
+        private const int DefaultStepCount = 24;
+
         public EncoderView()
         {
             InitializeComponent();
         }
 
         public static readonly DependencyProperty RadiusProperty = DependencyProperty.Register(
-            nameof(Radius), typeof(double), typeof(EncoderView), new PropertyMetadata(default(double)));
+            nameof(Radius), typeof(double), typeof(EncoderView), new PropertyMetadata(DefaultRadius));
         public double Radius
         {
             get => (double)GetValue(RadiusProperty);
@@ -26,7 +31,7 @@ namespace DaniHidSimController.Views
         }
 
         public static readonly DependencyProperty DiameterProperty = DependencyProperty.Register(
-            nameof(Diameter), typeof(double), typeof(EncoderView), new PropertyMetadata(default(double), OnDiameterPropertyChanged));
+            nameof(Diameter), typeof(double), typeof(EncoderView), new PropertyMetadata(DefaultDiameter, OnDiameterPropertyChanged));
         public double Diameter
         {
             get => (double)GetValue(DiameterProperty);
@@ -38,7 +43,6 @@ namespace DaniHidSimController.Views
             if (d is EncoderView encoderView)
             {
                 var value = (short)e.NewValue;
-                var ratio = value / (float)short.MaxValue;
                 encoderView.Angle = value * (360.0 / encoderView.StepCount);
             }
         }
@@ -59,36 +63,20 @@ namespace DaniHidSimController.Views
             set => SetValue(ValueProperty, value);
         }
 
-        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-            nameof(Title), typeof(string), typeof(EncoderView), new PropertyMetadata(default(string)));
-        public string Title
-        {
-            get => (string)GetValue(TitleProperty);
-            set => SetValue(TitleProperty, value);
-        }
-
         public static readonly DependencyProperty StepCountProperty = DependencyProperty.Register(
-            nameof(StepCount), typeof(int), typeof(EncoderView), new PropertyMetadata(default(int)));
+            nameof(StepCount), typeof(int), typeof(EncoderView), new PropertyMetadata(DefaultStepCount));
         public int StepCount
         {
             get => (int) GetValue(StepCountProperty);
             set => SetValue(StepCountProperty, value);
         }
 
-        public static readonly DependencyProperty IsPressedProperty = DependencyProperty.Register(
-            nameof(IsPressed), typeof(bool), typeof(EncoderView), new PropertyMetadata(default(bool)));
-        public bool IsPressed
+        public static readonly DependencyProperty KnobColorProperty = DependencyProperty.Register(
+            nameof(KnobColor), typeof(Brush), typeof(EncoderView), new PropertyMetadata(default(Brush)));
+        public Brush KnobColor
         {
-            get => (bool) GetValue(IsPressedProperty);
-            set => SetValue(IsPressedProperty, value);
-        }
-
-        public static readonly DependencyProperty MappedValueProperty = DependencyProperty.Register(
-            nameof(MappedValue), typeof(uint), typeof(EncoderView), new PropertyMetadata(default(uint)));
-        public uint MappedValue
-        {
-            get => (uint) GetValue(MappedValueProperty);
-            set => SetValue(MappedValueProperty, value);
+            get => (Brush) GetValue(KnobColorProperty);
+            set => SetValue(KnobColorProperty, value);
         }
     }
 }

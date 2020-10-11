@@ -4,6 +4,8 @@ namespace DaniHidSimController.Views
 {
     public partial class LedView
     {
+        private const double DefaultDiameter = 20d;
+
         public LedView()
         {
             InitializeComponent();
@@ -17,13 +19,12 @@ namespace DaniHidSimController.Views
             set => SetValue(IsActiveProperty, value);
         }
 
-        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-            nameof(Title), typeof(string), typeof(LedView), new PropertyMetadata(default(string)));
-
-        public string Title
+        public static readonly DependencyProperty DiameterProperty = DependencyProperty.Register(
+            nameof(Diameter), typeof(double), typeof(LedView), new PropertyMetadata(DefaultDiameter));
+        public double Diameter
         {
-            get => (string) GetValue(TitleProperty);
-            set => SetValue(TitleProperty, value);
+            get => (double) GetValue(DiameterProperty);
+            set => SetValue(DiameterProperty, value);
         }
     }
 }

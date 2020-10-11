@@ -1,16 +1,20 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 
 namespace DaniHidSimController.Views
 {
     public partial class SliderView
     {
+        public const double DefaultKnobWidth = 30;
+        public const double DefaultKnobHeight = 40;
+
         public SliderView()
         {
             InitializeComponent();
         }
 
         public static readonly DependencyProperty KnobWidthProperty = DependencyProperty.Register(
-            nameof(KnobWidth), typeof(double), typeof(SliderView), new PropertyMetadata(default(double)));
+            nameof(KnobWidth), typeof(double), typeof(SliderView), new PropertyMetadata(DefaultKnobWidth));
         public double KnobWidth
         {
             get => (double) GetValue(KnobWidthProperty);
@@ -18,7 +22,7 @@ namespace DaniHidSimController.Views
         }
 
         public static readonly DependencyProperty KnobHeightProperty = DependencyProperty.Register(
-            nameof(KnobHeight), typeof(double), typeof(SliderView), new PropertyMetadata(default(double)));
+            nameof(KnobHeight), typeof(double), typeof(SliderView), new PropertyMetadata(DefaultKnobHeight));
         public double KnobHeight
         {
             get => (double) GetValue(KnobHeightProperty);
@@ -63,16 +67,17 @@ namespace DaniHidSimController.Views
             set => SetValue(KnobMarginProperty, value);
         }
 
-        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-            nameof(Title), typeof(string), typeof(SliderView), new PropertyMetadata(default(string)));
-        public string Title
-        {
-            get => (string) GetValue(TitleProperty);
-            set => SetValue(TitleProperty, value);
-        }
         private static double Map(double x, double in_min, double in_max, double out_min, double out_max)
         {
             return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        }
+
+        public static readonly DependencyProperty KnobColorProperty = DependencyProperty.Register(
+            nameof(KnobColor), typeof(Brush), typeof(SliderView), new PropertyMetadata(default(Brush)));
+        public Brush KnobColor
+        {
+            get => (Brush) GetValue(KnobColorProperty);
+            set => SetValue(KnobColorProperty, value);
         }
     }
 }

@@ -1,19 +1,23 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 
 namespace DaniHidSimController.Views
 {
     public partial class PotentiometerView
     {
+        private const double DefaultDiameter = 50;
+        private const double DefaultRadius = DefaultDiameter / 2;
+
         public PotentiometerView()
         {
             InitializeComponent();
         }
 
         public static readonly DependencyProperty DiameterProperty = DependencyProperty.Register(
-            nameof(Diameter), typeof(double), typeof(PotentiometerView), new PropertyMetadata(default(double), OnDiameterPropertyChanged));
+            nameof(Diameter), typeof(double), typeof(PotentiometerView), new PropertyMetadata(DefaultDiameter, OnDiameterPropertyChanged));
 
         public static readonly DependencyProperty RadiusProperty = DependencyProperty.Register(
-            nameof(Radius), typeof(double), typeof(PotentiometerView), new PropertyMetadata(default(double)));
+            nameof(Radius), typeof(double), typeof(PotentiometerView), new PropertyMetadata(DefaultRadius));
         public double Radius
         {
             get => (double) GetValue(RadiusProperty);
@@ -49,7 +53,6 @@ namespace DaniHidSimController.Views
 
         public static readonly DependencyProperty AngleProperty = DependencyProperty.Register(
             nameof(Angle), typeof(double), typeof(PotentiometerView), new PropertyMetadata(default(double)));
-
         public double Angle
         {
             get => (double) GetValue(AngleProperty);
@@ -62,12 +65,12 @@ namespace DaniHidSimController.Views
             set => SetValue(ValueProperty, value);
         }
 
-        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-            nameof(Title), typeof(string), typeof(PotentiometerView), new PropertyMetadata(default(string)));
-        public string Title
+        public static readonly DependencyProperty KnobColorProperty = DependencyProperty.Register(
+            nameof(KnobColor), typeof(Brush), typeof(PotentiometerView), new PropertyMetadata(default(Brush)));
+        public Brush KnobColor
         {
-            get => (string) GetValue(TitleProperty);
-            set => SetValue(TitleProperty, value);
+            get => (Brush) GetValue(KnobColorProperty);
+            set => SetValue(KnobColorProperty, value);
         }
     }
 }
