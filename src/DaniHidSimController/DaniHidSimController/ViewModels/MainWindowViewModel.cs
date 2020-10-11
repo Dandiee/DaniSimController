@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using DaniHidSimController.Models;
@@ -118,18 +119,15 @@ namespace DaniHidSimController.ViewModels
         private readonly IEventAggregator _eventAggregator;
 
         private DevState _lastSentState;
-        public DeviceStateViewModel State { get; }
 
-        public ICommand CheckLocationCommand { get; }
+        public ICommand OpenMapCommand { get; }
         public ICommand ClosingCommand { get; }
 
         private long _lastSent = -1;
 
-        public CredentialsProvider CredentialsProvider { get; }
-
         public MainWindowViewModel(
             IHidService hidService,
-            DeviceStateViewModel deviceStateViewModel,
+            DeviceViewModel deviceViewModel,
             IUsbService usbService,
             IOptions<SimOptions> options,
             IEventAggregator eventAggregator)
@@ -142,21 +140,26 @@ namespace DaniHidSimController.ViewModels
             if (string.IsNullOrEmpty(options.Value.BingMapCredentialsProvider))
                 throw new ArgumentException();
 
-            State = deviceStateViewModel;
             _lastSentState = new DevState();
-
-            Locations = new LocationCollection();
-            Location = new Location(47.493351, 19.060372);
-            Locations.Add(Location);
-            CheckLocationCommand = new DelegateCommand(CheckLocation);
-
-            CredentialsProvider = new ApplicationIdCredentialsProvider(_options.Value.BingMapCredentialsProvider);
 
             eventAggregator.GetEvent<SimVarReceivedEvent>().Subscribe(OnSimVarReceived);
             eventAggregator.GetEvent<SimConnectConnectionChangedEvent>().Subscribe(OnSimConnectConnectionChanged);
             eventAggregator.GetEvent<UsbConnectionChangedEvent>().Subscribe(OnUsbConnectionChanged);
 
             ClosingCommand = new DelegateCommand(Closing);
+            OpenMapCommand = new DelegateCommand(OpenMap);
+        }
+
+        private void OpenMap()
+        {
+            var window = System.Windows.Application.Current.Windows.OfType<LocationWindow>().SingleOrDefault();
+            if (window == null)
+            {
+                window = new LocationWindow();
+                window.Show();
+            }
+
+            window.Activate();
         }
 
         private void Closing()
@@ -176,14 +179,6 @@ namespace DaniHidSimController.ViewModels
         {
             _lastSentState.IsDaniClientConnected = isConnected;
             WriteState();
-        }
-
-        private void CheckLocation()
-        {
-            var url =
-                $"https://www.google.com/maps/search/{Location.Latitude}+{Location.Longitude}";
-            Process.Start(
-                new ProcessStartInfo(url) { UseShellExecute = true });
         }
 
         private unsafe void OnSimVarReceived(SimVarRequest request)
@@ -250,17 +245,6 @@ namespace DaniHidSimController.ViewModels
                 case SimVars.AUTOPILOT_YAW_DAMPER:
                     _lastSentState.IsAutopilotYawDamperEnabled = (bool)request.Get();
                     break;
-
-
-                case SimVars.GPS_POSITION_LAT:
-                    var lat = (float)request.Get();
-                    Location = new Location(lat * (180 / Math.PI), Location.Longitude);
-                    break;
-
-                case SimVars.GPS_POSITION_LON:
-                    var lon = (float)request.Get();
-                    Location = new Location(Location.Latitude, lon * (180 / Math.PI));
-                    break;
             }
 
             WriteState();
@@ -274,49 +258,5 @@ namespace DaniHidSimController.ViewModels
             _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(_lastSentState);
         }
 
-        private DateTime _lastLocationSet;
-
-
-        public LocationCollection Locations { get; }
-
-
-        private Location _location;
-        public Location Location
-        {
-            get => _location;
-            set
-            {
-                var elapsed = DateTime.Now - _lastLocationSet;
-                if (elapsed > TimeSpan.FromMilliseconds(20))
-                {
-                    SetProperty(ref _location, value);
-                    _lastLocationSet = DateTime.Now;
-                    //Locations.Clear();
-                    Locations.Add(value);
-                }
-                else
-                {
-                    _location = value;
-                }
-
-            }
-        }
-
-        public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg == 0x00FF)
-            {
-                var newState = _hidService.GetDeviceState(lParam, out var bytes);
-                if (newState.ReportId == 6)
-                {
-                    State.Apply(newState);
-                }
-                // State.BytesText = string.Join("\r\n", bytes.Select(s => Convert.ToString(s, 2).PadLeft(8, '0')));
-
-                handled = true;
-            }
-
-            return IntPtr.Zero;
-        }
     }
 }

@@ -4,7 +4,7 @@ using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
-    public sealed class ButtonViewModel : BindableBase
+    public sealed class ButtonViewModel : BindableBase, IInputComponentViewModel
     {
         public int ButtonIndex { get; }
 

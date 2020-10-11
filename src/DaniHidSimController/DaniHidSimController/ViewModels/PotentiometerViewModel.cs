@@ -5,7 +5,7 @@ using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
-    public sealed class PotentiometerViewModel : BindableBase
+    public sealed class PotentiometerViewModel : BindableBase, IInputComponentViewModel
     {
         private readonly Func<DaniDeviceState, short> _getValue;
         

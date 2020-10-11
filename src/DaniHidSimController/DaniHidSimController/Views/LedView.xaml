@@ -1,22 +1,54 @@
 ﻿<UserControl x:Class="DaniHidSimController.Views.LedView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:DaniHidSimController.ViewModels">
         <Grid>
-            
-            <Ellipse Width="20" Height="20" Stroke="Black" StrokeThickness="1" Fill="#AAAAAA"/>
+
+            <Grid.ToolTip>
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#000000"/>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="70"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="GPIO" />
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Pin.IsGpio}" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Pin" />
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Pin.Index}" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="State" />
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding State}" FontWeight="Bold"/>
+
+            </Grid>
+            </Grid.ToolTip>
+
+        <Ellipse Width="20" Height="20" Stroke="Black" StrokeThickness="1" Fill="#AAAAAA"/>
 
             <Ellipse Width="10" Height="10" Stroke="Black" StrokeThickness="1">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                        <DataTrigger Binding="{Binding State}" Value="{x:Static viewModels:LedState.On}">
                                 <Setter Property="Fill" Value="LawnGreen"/>
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                        <DataTrigger Binding="{Binding State}" Value="{x:Static viewModels:LedState.Off}">
                                 <Setter Property="Fill" Value="DarkSlateGray"/>
                             </DataTrigger>
-                        </Style.Triggers>
+
+                        <DataTrigger Binding="{Binding State}" Value="{x:Static viewModels:LedState.Blink}">
+                                <Setter Property="Fill" Value="OrangeRed"/>
+                            </DataTrigger>
+                    </Style.Triggers>
                     </Style>
                 </Ellipse.Style>
             </Ellipse>

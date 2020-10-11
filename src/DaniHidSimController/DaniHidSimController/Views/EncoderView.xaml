@@ -36,7 +36,7 @@
                     <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding ButtonIndex}" FontWeight="Bold"/>
                     <TextBlock Grid.Column="0" Grid.Row="2" Text="Raw" />
                     <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding RawValue}" FontWeight="Bold"/>
-                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Decrease" />
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Increase" />
                     <TextBlock Grid.Column="1" Grid.Row="3" Text="{Binding IncreaseEvent}" FontWeight="Bold"/>
                     <TextBlock Grid.Column="0" Grid.Row="4" Text="Decrease" />
                     <TextBlock Grid.Column="1" Grid.Row="4" Text="{Binding DecreaseEvent}" FontWeight="Bold"/>

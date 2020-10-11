@@ -1,16 +1,41 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using DaniHidSimController.Mvvm;
 
 namespace DaniHidSimController.Services
 {
     public interface IHidService
     {
-        DaniDeviceState GetDeviceState(IntPtr rawInputHandle, out byte[] bytes);
+        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
     }
 
+    public sealed class HidStateReceivedEvent : PubSubEvent<DaniDeviceState> { }
     public sealed class HidService : IHidService
     {
-        public DaniDeviceState GetDeviceState(IntPtr rawInputHandle, out byte[] bytes)
+        private readonly IEventAggregator _eventAggregator;
+
+        public HidService(IEventAggregator eventAggregator)
+        {
+            _eventAggregator = eventAggregator;
+        }
+
+        public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == 0x00FF)
+            {
+                var newState = GetDeviceState(lParam, out var bytes);
+                if (newState.ReportId == 6)
+                {
+                    _eventAggregator.GetEvent<HidStateReceivedEvent>().Publish(newState);
+                }
+
+                handled = true;
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private DaniDeviceState GetDeviceState(IntPtr rawInputHandle, out byte[] bytes)
         {
             var skipper = 24u;
             var dwSize = 0u;
@@ -27,5 +52,6 @@ namespace DaniHidSimController.Services
 
             return Marshal.PtrToStructure<DaniDeviceState>(IntPtr.Add(nativeBuffer, (int)(dwSize - 26)));
         }
+
     }
 }

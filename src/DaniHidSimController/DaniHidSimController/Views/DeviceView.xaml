@@ -36,37 +36,37 @@
             <!-- Left bar -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 -30 0 0"
                         Grid.Row="0" Grid.Column="0">
-                <local:LedView IsActive="True" Margin="0 0 1 0" />
-                <local:LedView IsActive="True" Margin="1 0 0 0" />
+                <local:LedView DataContext="{Binding GpioLeds[15]}" Margin="0 0 1 0" />
+                <local:LedView DataContext="{Binding GpioLeds[14]}" Margin="1 0 0 0" />
             </StackPanel>
 
-            <local:SliderView DataContext="{Binding State.Analog5}" KnobColor="#000000" Foreground="#FFFFFF" Grid.Row="1" Grid.Column="0" Grid.RowSpan="6"/>
+            <local:SliderView DataContext="{Binding Potentiometers[4]}" KnobColor="#000000" Foreground="#FFFFFF" Grid.Row="1" Grid.Column="0" Grid.RowSpan="6"/>
 
             <!-- First row -->
-            <local:EncoderView DataContext="{Binding State.Analog9}" Grid.Row="0" Grid.Column="2" KnobColor="#AAAAAA" Foreground="#000000" />
-            <local:LedView IsActive="{Binding State.Led5}" Margin="3 0 0 0"  Grid.Row="0" Grid.Column="3"/>
+            <local:EncoderView DataContext="{Binding Encoders[3]}" Grid.Row="0" Grid.Column="2" KnobColor="#AAAAAA" Foreground="#000000" />
+            <local:LedView DataContext="{Binding GpioLeds[13]}" Margin="3 0 0 0"  Grid.Row="0" Grid.Column="3"/>
 
-            <local:EncoderView DataContext="{Binding State.Analog8}" Grid.Row="0" Grid.Column="5" KnobColor="#AAAAAA" Foreground="#000000"/>
-            <local:LedView IsActive="{Binding State.Led4}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="6"/>
+            <local:EncoderView DataContext="{Binding Encoders[2]}" Grid.Row="0" Grid.Column="5" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView DataContext="{Binding GpioLeds[12]}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="6"/>
 
-            <local:EncoderView DataContext="{Binding State.Analog7}" Grid.Row="0" Grid.Column="8" KnobColor="#AAAAAA" Foreground="#000000"/>
-            <local:LedView IsActive="{Binding State.Led3}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="9"/>
+            <local:EncoderView DataContext="{Binding Encoders[1]}" Grid.Row="0" Grid.Column="8" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView DataContext="{Binding GpioLeds[11]}" Margin="3 0 0 0" Grid.Row="0" Grid.Column="9"/>
 
-            <local:EncoderView DataContext="{Binding State.Analog6}" Grid.Row="0" Grid.Column="11" KnobColor="#AAAAAA" Foreground="#000000"/>
-            <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 0" Grid.Row="0" Grid.Column="12"/>
+            <local:EncoderView DataContext="{Binding Encoders[0]}" Grid.Row="0" Grid.Column="11" KnobColor="#AAAAAA" Foreground="#000000"/>
+            <local:LedView DataContext="{Binding GpioLeds[10]}" Margin="0 0 0 0" Grid.Row="0" Grid.Column="12"/>
 
 
             <!-- Second row -->
-            <local:EncoderView DataContext="{Binding State.Analog6}" Grid.Row="2" Grid.Column="2" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:EncoderView DataContext="{Binding Encoders[0]}" Grid.Row="2" Grid.Column="2" KnobColor="#000000" Foreground="#FFFFFF"/>
 
-            <local:PotentiometerView DataContext="{Binding State.Analog4}" Grid.Row="2" Grid.Column="5" KnobColor="#000000" Foreground="#FFFFFF"/>
-            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="5"/>
+            <local:PotentiometerView DataContext="{Binding Potentiometers[3]}" Grid.Row="2" Grid.Column="5" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView DataContext="{Binding GpioLeds[6]}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="5"/>
 
-            <local:PotentiometerView DataContext="{Binding State.Analog3}" Grid.Row="2" Grid.Column="8" KnobColor="#000000" Foreground="#FFFFFF"/>
-            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="8"/>
+            <local:PotentiometerView DataContext="{Binding Potentiometers[2]}" Grid.Row="2" Grid.Column="8" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView DataContext="{Binding GpioLeds[7]}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="8"/>
 
-            <local:PotentiometerView DataContext="{Binding State.Analog2}" Grid.Row="2" Grid.Column="11" KnobColor="#000000" Foreground="#FFFFFF"/>
-            <local:LedView IsActive="{Binding State.Led2}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="11"/>
+            <local:PotentiometerView DataContext="{Binding Potentiometers[1]}" Grid.Row="2" Grid.Column="11" KnobColor="#000000" Foreground="#FFFFFF"/>
+            <local:LedView DataContext="{Binding GpioLeds[8]}" Margin="0 3 0 0" Grid.Row="3" Grid.Column="11"/>
 
 
             <!-- Third row -->
@@ -85,41 +85,41 @@
                 </Grid.RowDefinitions>
 
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="0"/>
-                <local:ButtonView DataContext="{Binding State.Button5}" Grid.Row="1" Grid.Column="0"/>
+                <local:LedView DataContext="{Binding GpioLeds[5]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="0"/>
+                <local:ButtonView DataContext="{Binding Buttons[0]}" Grid.Row="1" Grid.Column="0"/>
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="1"/>
-                <local:ButtonView DataContext="{Binding State.Button6}" Grid.Row="1" Grid.Column="1"/>
+                <local:LedView DataContext="{Binding GpioLeds[4]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="1"/>
+                <local:ButtonView DataContext="{Binding Buttons[1]}" Grid.Row="1" Grid.Column="1"/>
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="2"/>
-                <local:ButtonView DataContext="{Binding State.Button7}" Grid.Row="1" Grid.Column="2"/>
+                <local:LedView DataContext="{Binding GpioLeds[3]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="2"/>
+                <local:ButtonView DataContext="{Binding Buttons[2]}" Grid.Row="1" Grid.Column="2"/>
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="3"/>
-                <local:ButtonView DataContext="{Binding State.Button8}" Grid.Row="1" Grid.Column="3"/>
+                <local:LedView DataContext="{Binding GpioLeds[2]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="3"/>
+                <local:ButtonView DataContext="{Binding Buttons[3]}" Grid.Row="1" Grid.Column="3"/>
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="4"/>
-                <local:ButtonView DataContext="{Binding State.Button9}" Grid.Row="1" Grid.Column="4"/>
+                <local:LedView DataContext="{Binding GpioLeds[1]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="4"/>
+                <local:ButtonView DataContext="{Binding Buttons[4]}" Grid.Row="1" Grid.Column="4"/>
 
-                <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="5"/>
-                <local:ButtonView DataContext="{Binding State.Button10}" Grid.Row="1" Grid.Column="5"/>
+                <local:LedView DataContext="{Binding GpioLeds[0]}" Margin="0 0 0 5" Grid.Row="0" Grid.Column="5"/>
+                <local:ButtonView DataContext="{Binding Buttons[5]}" Grid.Row="1" Grid.Column="5"/>
 
             </Grid>
 
-            <local:LedView IsActive="{Binding State.Led2}" Margin="0 0 0 5" Grid.Row="5" Grid.Column="11"/>
+            <local:LedView DataContext="{Binding BuiltInLeds[9]}" Margin="0 0 0 5" Grid.Row="5" Grid.Column="11"/>
             <Grid Grid.Row="6" Grid.Column="11">
-                <local:ButtonView DataContext="{Binding State.Button12}"/>
-                <local:LedView IsActive="{Binding State.Led2}" Margin="-50 0 0 -25" />
-                <local:LedView IsActive="{Binding State.Led2}" Margin="50 0 0 -25" />
+                <local:ButtonView DataContext="{Binding Buttons[7]}"/>
+                <local:LedView DataContext="{Binding BuiltInLeds[8]}" Margin="-50 0 0 -25" />
+                <local:LedView DataContext="{Binding BuiltInLeds[10]}" Margin="50 0 0 -25" />
             </Grid>
 
 
             <!-- Right bar -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 -30 0 0"
                         Grid.Row="0" Grid.Column="14" >
-                <local:ButtonView DataContext="{Binding State.Button11}" Margin="0 0 3 0"/>
-                <local:LedView IsActive="{Binding State.Led1}"  Margin="3 0 0 0"/>
+                <local:ButtonView DataContext="{Binding Buttons[6]}" Margin="0 0 3 0"/>
+                <local:LedView DataContext="{Binding GpioLeds[9]}"  Margin="3 0 0 0"/>
             </StackPanel>
-            <local:SliderView DataContext="{Binding State.Analog1}" KnobColor="#000000" Foreground="#FFFFFF" 
+            <local:SliderView DataContext="{Binding Potentiometers[0]}" KnobColor="#000000" Foreground="#FFFFFF" 
                               Grid.Row="1" Grid.Column="14" Grid.RowSpan="6" />
 
         </Grid>

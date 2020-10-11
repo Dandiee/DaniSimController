@@ -5,7 +5,7 @@ using DaniHidSimController.Services;
 
 namespace DaniHidSimController.ViewModels
 {
-    public sealed class EncoderViewModel : BindableBase
+    public sealed class EncoderViewModel : BindableBase, IInputComponentViewModel
     {
         private readonly ISimConnectService _simConnectService;
         private readonly Func<DaniDeviceState, short> _getValue;
