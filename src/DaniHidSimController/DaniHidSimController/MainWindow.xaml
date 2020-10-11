@@ -15,8 +15,9 @@
         <views:DeviceView />
         <Button Width="24" Height="24" HorizontalAlignment="Right" 
                 Command="{Binding OpenMapCommand}" Margin="0 0 3 3"
+                BorderBrush="OrangeRed"
                 VerticalAlignment="Bottom" >
-            <TextBlock Text="M" FontWeight="Bold" Foreground="Black"/>
+            <TextBlock Text="M" FontWeight="Bold" Foreground="OrangeRed"/>
         </Button>
     </Grid>
 </Window>

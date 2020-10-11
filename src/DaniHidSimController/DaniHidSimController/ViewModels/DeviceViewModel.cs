@@ -21,8 +21,6 @@ namespace DaniHidSimController.ViewModels
             IUsbService usbService,
             IEventAggregator eventAggregator)
         {
-            _isDisconnected = !usbService.IsConnected;
-
             Encoders = new[]
             {
                 new EncoderViewModel(simConnectService, "HDG", state => state.Analog6, 0,
@@ -88,6 +86,7 @@ namespace DaniHidSimController.ViewModels
                 }
             });
 
+            _isDisconnected = !usbService.IsConnected;
             eventAggregator.GetEvent<UsbConnectionChangedEvent>().Subscribe(isConnected =>
             {
                 IsDisconnected = !isConnected;
