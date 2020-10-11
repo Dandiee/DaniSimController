@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using DaniSimController.Services;
+﻿using System.Collections.Generic;
 
-namespace DaniSimController.Models
+namespace DaniHidSimController.Models
 {
     public sealed class SimVar
     {

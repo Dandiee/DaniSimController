@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="DaniHidSimController.Views.EncoderView"
+﻿<UserControl x:Class="DaniHidSimController.Views.IoComponents.EncoderView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:views="clr-namespace:DaniHidSimController.Views">
+             xmlns:views="clr-namespace:DaniHidSimController.Views"
+             xmlns:ioComponents="clr-namespace:DaniHidSimController.Views.IoComponents">
     <UserControl.Style>
-        <Style TargetType="{x:Type views:EncoderView}">
+        <Style TargetType="{x:Type ioComponents:EncoderView}">
             <Setter Property="Value" Value="{Binding RawValue}"/>
         </Style>
     </UserControl.Style>

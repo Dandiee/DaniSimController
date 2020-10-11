@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DaniSimController.Models
+namespace DaniHidSimController.Models
 {
     public sealed class SimVarType
     {

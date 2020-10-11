@@ -1,6 +1,6 @@
 ﻿using DaniHidSimController.Mvvm;
 
-namespace DaniHidSimController.ViewModels
+namespace DaniHidSimController.ViewModels.IoComponents
 {
     public enum LedState { Off, On, Blink }
 

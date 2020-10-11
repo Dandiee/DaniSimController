@@ -2,8 +2,9 @@
 using System.Linq.Expressions;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
+using DaniHidSimController.Services.Sim;
 
-namespace DaniHidSimController.ViewModels
+namespace DaniHidSimController.ViewModels.IoComponents
 {
     public sealed class EncoderViewModel : BindableBase, IInputComponentViewModel
     {

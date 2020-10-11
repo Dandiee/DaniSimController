@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace DaniHidSimController.Views
+namespace DaniHidSimController.Views.IoComponents
 {
     public partial class PotentiometerView
     {

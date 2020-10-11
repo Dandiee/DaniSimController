@@ -2,6 +2,8 @@
 using System.Linq;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
+using DaniHidSimController.Services.Sim;
+using DaniHidSimController.ViewModels.IoComponents;
 
 namespace DaniHidSimController.ViewModels
 {
@@ -13,10 +15,14 @@ namespace DaniHidSimController.ViewModels
         public IReadOnlyCollection<LedViewModel> GpioLeds { get; }
         public IReadOnlyCollection<LedViewModel> BuiltInLeds { get; }
 
+
         public DeviceViewModel(
             ISimConnectService simConnectService,
+            IUsbService usbService,
             IEventAggregator eventAggregator)
         {
+            _isDisconnected = !usbService.IsConnected;
+
             Encoders = new[]
             {
                 new EncoderViewModel(simConnectService, "HDG", state => state.Analog6, 0,
@@ -81,6 +87,18 @@ namespace DaniHidSimController.ViewModels
                     inputComponent.Update(state);
                 }
             });
+
+            eventAggregator.GetEvent<UsbConnectionChangedEvent>().Subscribe(isConnected =>
+            {
+                IsDisconnected = !isConnected;
+            });
+        }
+
+        private bool _isDisconnected;
+        public bool IsDisconnected
+        {
+            get => _isDisconnected;
+            private set => SetProperty(ref _isDisconnected, value);
         }
     }
 }

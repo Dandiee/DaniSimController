@@ -5,13 +5,15 @@ using System.Management;
 using System.Threading.Tasks;
 using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
+using DaniHidSimController.ViewModels;
 using Microsoft.Extensions.Options;
 
 namespace DaniHidSimController.Services
 {
     public interface IUsbService
     {
-        void Write(byte[] data);
+        bool IsConnected { get; }
+        void Write(UsbWriteState state);
     }
 
     public sealed class UsbConnectionChangedEvent : PubSubEvent<bool> { }
@@ -19,8 +21,9 @@ namespace DaniHidSimController.Services
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly SimOptions _options;
+        private readonly string _searchQuery;
 
-        private bool _isConnected;
+        public bool IsConnected { get; private set; }
         private SerialPort _serialPort;
 
         public UsbService(
@@ -29,22 +32,25 @@ namespace DaniHidSimController.Services
         {
             _eventAggregator = eventAggregator;
             _options = options.Value;
-
+            _searchQuery = $"SELECT * FROM WIN32_SerialPort WHERE Description = '{options.Value.DeviceName}'";
             StartConnect();
         }
 
-        public void Write(byte[] data)
+        public void Write(UsbWriteState state)
         {
-            if (_isConnected)
+            if (IsConnected)
             {
                 try
                 {
+                    var data = state.GetState();
                     _serialPort.Write(data, 0, data.Length);
+                    _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(state);
                 }
                 catch
                 {
-                    _isConnected = false;
+                    IsConnected = false;
                     _serialPort.Dispose();
+                    _eventAggregator.GetEvent<UsbConnectionChangedEvent>().Publish(false);
                     StartConnect();
                 }
             }
@@ -75,14 +81,13 @@ namespace DaniHidSimController.Services
         {
             _serialPort = new SerialPort(deviceId, 115200);
             _serialPort.Open();
-            _isConnected = true;
+            IsConnected = true;
             _eventAggregator.GetEvent<UsbConnectionChangedEvent>().Publish(true);
         }
 
         private bool TryGetDeviceId(out string deviceId)
         {
-            using (var searcher = new ManagementObjectSearcher
-                ("SELECT * FROM WIN32_SerialPort WHERE Description = 'Arduino Leonardo'"))
+            using (var searcher = new ManagementObjectSearcher(_searchQuery))
             {
                 var device = searcher.Get().Cast<ManagementBaseObject>().SingleOrDefault();
                 if (device != null)

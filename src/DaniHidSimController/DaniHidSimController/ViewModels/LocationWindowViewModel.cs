@@ -4,6 +4,7 @@ using System.Windows.Input;
 using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
+using DaniHidSimController.Services.Sim;
 using Microsoft.Extensions.Options;
 using Microsoft.Maps.MapControl.WPF;
 using Microsoft.Maps.MapControl.WPF.Core;

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using DaniHidSimController.Mvvm;
 using DaniHidSimController.Services;
 
-namespace DaniHidSimController.ViewModels
+namespace DaniHidSimController.ViewModels.IoComponents
 {
     public sealed class PotentiometerViewModel : BindableBase, IInputComponentViewModel
     {

@@ -1,4 +1,4 @@
-﻿namespace DaniHidSimController.Services
+﻿namespace DaniHidSimController.Services.Sim
 {
     public enum MyGroups : uint
     {

@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\LedView.xaml.cs">
+    <Compile Update="Views\IoComponents\LedView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -61,7 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Views\LedView.xaml">
+    <Page Update="Views\IoComponents\LedView.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

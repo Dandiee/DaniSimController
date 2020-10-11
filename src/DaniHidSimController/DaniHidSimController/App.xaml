@@ -12,5 +12,7 @@
             <Setter Property="Foreground" Value="#000000" />
         </Style>
 
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
     </Application.Resources>
 </Application>

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Interop;
 using DaniHidSimController.Models;
 using DaniHidSimController.Mvvm;
+using DaniHidSimController.Services.Sim;
 using Microsoft.Extensions.Options;
 using Microsoft.FlightSimulator.SimConnect;
 

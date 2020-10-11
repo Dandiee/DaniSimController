@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace DaniHidSimController.Views
+namespace DaniHidSimController.Views.IoComponents
 {
     public partial class LedView
     {

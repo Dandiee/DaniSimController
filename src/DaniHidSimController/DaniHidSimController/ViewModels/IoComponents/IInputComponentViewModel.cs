@@ -1,6 +1,6 @@
 ﻿using DaniHidSimController.Services;
 
-namespace DaniHidSimController.ViewModels
+namespace DaniHidSimController.ViewModels.IoComponents
 {
     public interface IInputComponentViewModel
     {

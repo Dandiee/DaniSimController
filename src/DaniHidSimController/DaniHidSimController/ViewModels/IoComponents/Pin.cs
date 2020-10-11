@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DaniHidSimController.ViewModels
+namespace DaniHidSimController.ViewModels.IoComponents
 {
     public struct Pin
     {

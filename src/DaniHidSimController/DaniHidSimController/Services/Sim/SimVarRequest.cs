@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.FlightSimulator.SimConnect;
 
-namespace DaniHidSimController.Services
+namespace DaniHidSimController.Services.Sim
 {
     public abstract class SimVarRequest
     {

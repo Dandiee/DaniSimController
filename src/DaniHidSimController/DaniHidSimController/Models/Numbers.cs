@@ -1,4 +1,4 @@
-﻿namespace DaniSimController.Services
+﻿namespace DaniHidSimController.Models
 {
     public enum Numbers
     {
