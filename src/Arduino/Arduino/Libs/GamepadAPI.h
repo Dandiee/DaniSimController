@@ -16,7 +16,7 @@
 
 
 typedef union {
-	// 32 Buttons, 6 Axis, 2 D-Pads
+
 	uint8_t whole8[0];
 	uint16_t whole16[0];
 	uint32_t whole32[0];
@@ -81,30 +81,26 @@ public:
   	GamepadAPI::GamepadAPI(void) { }
 
   	void GamepadAPI::begin(void) {
-      // release all buttons
       end();
     }
-    
+
     void GamepadAPI::end(void) {
       memset(&_report, 0x00, sizeof(_report));
       SendReport(&_report, sizeof(_report));
     }
-    
+
     void GamepadAPI::write(void) { 
       SendReport(&_report, sizeof(_report)); 
     }
-    
     
     void GamepadAPI::press(uint8_t b){ 
       _report.buttons |= (uint32_t)1 << (b - 1); 
     }
     
-    
     void GamepadAPI::release(uint8_t b){ 
       _report.buttons &= ~((uint32_t)1 << (b - 1)); 
     }
-    
-    
+
     void GamepadAPI::releaseAll(void){ 
       memset(&_report, 0x00, sizeof(_report)); 
     }
@@ -113,40 +109,38 @@ public:
       _report.buttons = b; 
     }
     
-    
     void GamepadAPI::analog1(int16_t a){ 
       _report.analog1 = a; 
     }
-    
-    
+
     void GamepadAPI::analog2(int16_t a){ 
       _report.analog2 = a; 
     }
-    
+
     void GamepadAPI::analog3(int16_t a){ 
       _report.analog3 = a; 
     }
-    
+
     void GamepadAPI::analog4(int16_t a){ 
       _report.analog4 = a; 
     }
-    
+
     void GamepadAPI::analog5(int16_t a){ 
       _report.analog5 = a; 
     }
-    
+
     void GamepadAPI::analog6(int16_t a){ 
       _report.analog6 = a; 
     }
-    
+
     void GamepadAPI::analog7(int16_t a){ 
       _report.analog7 = a; 
     }
-    
+
     void GamepadAPI::analog8(int16_t a){ 
       _report.analog8 = a; 
     }
-
+    
     void GamepadAPI::analog9(int16_t a){ 
       _report.analog9 = a; 
     }
@@ -155,12 +149,9 @@ public:
       _report.analog10 = a;
     }
     
-    	// Sending is public in the base class for advanced users.
-	virtual void SendReport(void* data, int length) = 0;
+    virtual void SendReport(void* data, int length) = 0;
 
 protected:
 	HID_GamepadReport_Data_t _report;
 };
-
-// Implementation is inline
 #include "GamepadAPI.h"

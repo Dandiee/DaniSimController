@@ -22,6 +22,7 @@ namespace DaniHidSimController.Services
         private readonly IEventAggregator _eventAggregator;
         private readonly SimOptions _options;
         private readonly string _searchQuery;
+        private long _lastWrittenState;
 
         public bool IsConnected { get; private set; }
         private SerialPort _serialPort;
@@ -38,12 +39,14 @@ namespace DaniHidSimController.Services
 
         public void Write(UsbWriteState state)
         {
-            if (IsConnected)
+            var newState = state.GetAsUlong();
+            if (IsConnected && _lastWrittenState != newState)
             {
                 try
                 {
                     var data = state.GetState();
                     _serialPort.Write(data, 0, data.Length);
+                    _lastWrittenState = newState;
                     _eventAggregator.GetEvent<UsbStateWrittenEvent>().Publish(state);
                 }
                 catch

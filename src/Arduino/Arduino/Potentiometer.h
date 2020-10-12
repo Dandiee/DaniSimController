@@ -16,7 +16,7 @@ public:
     _rangeMax = rangeMax;
   }
 
-  bool readAndGetValue() {
+  bool detectChanges() {
 
     int currentValue = analogRead(_pin);
     _cursor = (_cursor + 1) % POTENTIOMETER_MEASURES;
@@ -32,50 +32,9 @@ public:
       if (isInverse) {
         mappedValue = (-1 * mappedValue) - 1;
       }
-  
-
-      /*Serial.print(_pin);
-      Serial.print(" ");
-      Serial.println(_value);*/
       return true;
     }
-
     return false;
-    
-    
-        /*
-        bool isRemoving = false;
-        bool isShifting = false;
-        uint16_t moveToNext = 0;
-
-        for (uint8_t i = 0; i < POTENTIOMETER_MEASURES; i++)
-        {
-            if (!isRemoving && _sorted[i] == valueToRemove)
-            {
-                isRemoving = true;
-            }
-
-            if (isRemoving)
-            {
-                _sorted[i] = POTENTIOMETER_MEASURES - 1 == i ? 0 : _sorted[i + 1];
-            }
-
-            if (!isShifting && (_sorted[i] > _value || i == POTENTIOMETER_MEASURES - 1))
-            {
-                moveToNext = _value;
-                isShifting = true;
-            }
-
-            if (isShifting)
-            {
-                uint16_t temp = moveToNext;
-                moveToNext = _sorted[i];
-                _sorted[i] = temp;
-            }
-        }*/
-
-    
-    return _value;
   }
   uint8_t _pin = 0;
   uint16_t _value;
@@ -91,7 +50,4 @@ private:
   uint8_t _cursor = 0;
   uint32_t _rollingTotal = 0;
 };
-
-
-
 #endif

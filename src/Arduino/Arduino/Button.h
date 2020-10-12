@@ -19,7 +19,7 @@ public:
     }
   }
 
-  bool checkState(uint16_t gpio) 
+  bool detectChanges(uint16_t gpio) 
   {
     uint8_t state = isGpio ? bitRead(gpio, pin) : digitalRead(pin);
 

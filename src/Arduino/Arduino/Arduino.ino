@@ -1,9 +1,9 @@
 #include "Potentiometer.h"
 #include "Button.h"
 #include "Settings.h"
-#include "Mcp/McpSettings.h"
-#include "Mcp/Mcp.h"
-#include "Mcp/McpBuilder.h"
+#include "McpSettings.h"
+#include "Mcp.h"
+#include "McpBuilder.h"
 #include "Encoder.h"
 #include "SimController.h"
 #include "Gamepad.h"
@@ -36,38 +36,36 @@ Mcp mcpOutput = McpBuilder(MCP_OUTPUT_SS_PIN)
 
 SimController simController = SimController();
 
-Button encoderButton1 = Button(ENC_0_BTN_GPIO_PIN, false, false, onButtonPressed);
-Button encoderButton2 = Button(ENC_1_BTN_GPIO_PIN, false, false, onButtonPressed);
-Button encoderButton3 = Button(ENC_2_BTN_GPIO_PIN, false, false, onButtonPressed);
-Button encoderButton4 = Button(ENC_3_BTN_GPIO_PIN, false, false, onButtonPressed);
-
-Button button1 = Button(BTN_0_GPIO_PIN, true, true, onButtonPressed);
-Button button2 = Button(BTN_1_GPIO_PIN, true, true, onButtonPressed);
-Button button3 = Button(BTN_2_GPIO_PIN, true, true, onButtonPressed);
-Button button4 = Button(BTN_3_GPIO_PIN, true, true, onButtonPressed);
-Button button5 = Button(BTN_4_GPIO_PIN, true, true, onButtonPressed);
-Button button6 = Button(BTN_5_GPIO_PIN, true, true, onButtonPressed);
-Button button7 = Button(BTN_6_GPIO_PIN, true, true, onButtonPressed);
-Button button8 = Button(BTN_7_GPIO_PIN, true, true, onButtonPressed);
-
-Encoder encoder1 = Encoder(ENC_0_GPIO_B_PINS, ENC_0_GPIO_A_PINS, 1, onEncoderChanged);
-Encoder encoder2 = Encoder(ENC_1_GPIO_B_PINS, ENC_1_GPIO_A_PINS, 2, onEncoderChanged);
-Encoder encoder3 = Encoder(ENC_2_GPIO_B_PINS, ENC_2_GPIO_A_PINS, 3, onEncoderChanged);
-Encoder encoder4 = Encoder(ENC_3_GPIO_B_PINS, ENC_3_GPIO_A_PINS, 4, onEncoderChanged);
-
-Potentiometer pot1 = Potentiometer(POT_0_PIN, -32768, 32768, false);
-Potentiometer pot2 = Potentiometer(POT_1_PIN, -32768, 32768, true);
-Potentiometer pot3 = Potentiometer(POT_2_PIN, -32768, 32768, true);
-Potentiometer pot4 = Potentiometer(POT_3_PIN, -32768, 32768, true);
-Potentiometer pot5 = Potentiometer(POT_4_PIN, -32768, 32768, false);
-
-Encoder* encoders[] = { &encoder1, &encoder2, &encoder3, &encoder4};
-Button* buttons[] = 
-{ 
-    &encoderButton1, &encoderButton2, &encoderButton3, &encoderButton4, 
-    &button1, &button2, &button3, &button4, &button5, &button6, &button7, &button8
+Encoder encoders[] = { 
+  Encoder(ENC_0_GPIO_B_PINS, ENC_0_GPIO_A_PINS, 1, onEncoderChanged),
+  Encoder(ENC_1_GPIO_B_PINS, ENC_1_GPIO_A_PINS, 2, onEncoderChanged),
+  Encoder(ENC_2_GPIO_B_PINS, ENC_2_GPIO_A_PINS, 3, onEncoderChanged),
+  Encoder(ENC_3_GPIO_B_PINS, ENC_3_GPIO_A_PINS, 4, onEncoderChanged)
 };
-Potentiometer* pots[] = { &pot1, &pot2, &pot3, &pot4, &pot5 };
+
+Button buttons[] =  { 
+  Button(ENC_0_BTN_GPIO_PIN, false, false, onButtonPressed),
+  Button(ENC_1_BTN_GPIO_PIN, false, false, onButtonPressed),
+  Button(ENC_2_BTN_GPIO_PIN, false, false, onButtonPressed),
+  Button(ENC_3_BTN_GPIO_PIN, false, false, onButtonPressed),
+  
+  Button(BTN_0_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_1_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_2_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_3_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_4_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_5_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_6_GPIO_PIN, true, true, onButtonPressed),
+  Button(BTN_7_GPIO_PIN, true, true, onButtonPressed)
+};
+
+Potentiometer pots[] = { 
+  Potentiometer(POT_0_PIN, -32768, 32768, false),
+  Potentiometer(POT_1_PIN, -32768, 32768, true),
+  Potentiometer(POT_2_PIN, -32768, 32768, true),
+  Potentiometer(POT_3_PIN, -32768, 32768, true),
+  Potentiometer(POT_4_PIN, -32768, 32768, false)
+};
 
 uint8_t encodersCount = (sizeof(encoders)/sizeof(*encoders));
 uint8_t buttonsCount = (sizeof(buttons)/sizeof(*buttons));
@@ -83,7 +81,7 @@ void setup()
   simController.begin();
   
   for (uint8_t i = 0; i < buttonsCount; i++) {
-      buttons[i]->begin();
+      buttons[i].begin();
   }
 
   Gamepad.begin();
@@ -96,17 +94,17 @@ void loop()
 
   for (uint8_t i = 0; i < encodersCount; i++) 
   {
-      isChanged |= encoders[i]->process(gpio);
+      isChanged |= encoders[i].detectChanges(gpio);
   }
 
   for (uint8_t i = 0; i < buttonsCount; i++) 
   {
-      isChanged |= buttons[i]->checkState(gpio);
+      isChanged |= buttons[i].detectChanges(gpio);
   }
 
   for (uint8_t i = 0; i < potsCount; i++) 
   {
-      isChanged |= pots[i]->readAndGetValue();
+      isChanged |= pots[i].detectChanges();
   }
   
   if (isChanged)
@@ -119,30 +117,22 @@ void loop()
 
 void sendGamepadReport()
 {
-  Gamepad.buttons(
-    !encoderButton1.lastKnownState
-    | !encoderButton2.lastKnownState << 1
-    | !encoderButton3.lastKnownState << 2
-    | !encoderButton4.lastKnownState << 3
-    | !button1.lastKnownState << 4
-    | !button2.lastKnownState << 5
-    | !button3.lastKnownState << 6
-    | !button4.lastKnownState << 7
-    | !button5.lastKnownState << 8
-    | !button6.lastKnownState << 9
-    | !button7.lastKnownState << 10
-    | !button8.lastKnownState << 11);  
+  uint32_t buttonStates = 0; 
+  for (uint8_t i = 0; i < buttonsCount; i++) {
+    bitWrite(buttonStates, i, !buttons[i].lastKnownState);
+  }
+  Gamepad.buttons(buttonStates);
 
-  Gamepad.analog1(pot1.mappedValue);
-  Gamepad.analog2(pot2.mappedValue);
-  Gamepad.analog3(pot3.mappedValue);
-  Gamepad.analog4(pot4.mappedValue);
-  Gamepad.analog5(pot5.mappedValue);
+  Gamepad.analog1(pots[0].mappedValue);
+  Gamepad.analog2(pots[1].mappedValue);
+  Gamepad.analog3(pots[2].mappedValue);
+  Gamepad.analog4(pots[3].mappedValue);
+  Gamepad.analog5(pots[4].mappedValue);
   
-  Gamepad.analog6(encoder1.value);
-  Gamepad.analog7(encoder2.value);
-  Gamepad.analog8(encoder3.value);
-  Gamepad.analog9(encoder4.value);
+  Gamepad.analog6(encoders[0].value);
+  Gamepad.analog7(encoders[1].value);
+  Gamepad.analog8(encoders[2].value);
+  Gamepad.analog9(encoders[3].value);
   
   Gamepad.write();
 }

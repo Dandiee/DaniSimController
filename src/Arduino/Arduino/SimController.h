@@ -50,10 +50,8 @@ class SimController
     
     void handle(Mcp mcpOutput)
     {
-      if (read())
-      {
-        write(mcpOutput);
-      }
+      read();
+      write(mcpOutput);
     }
         
   private:
@@ -87,7 +85,7 @@ class SimController
             _state.IsAutopilotAirspeedEnabled = bitRead(byte2, 3);
             _state.IsAutopilotVerticalSpeedEnabled = bitRead(byte2, 4);
             _state.IsAutopilotYawDamperEnabled = bitRead(byte2, 5);
-    
+
             _state.IsLeftGearMoving = bitRead(byte3, 0);
             _state.IsCenterGearMoving = bitRead(byte3, 1);
             _state.IsRightGearMoving = bitRead(byte3, 2);

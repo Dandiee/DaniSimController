@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
-#include "HID.h"
-#include "HID-Settings.h"
-#include "GamepadAPI.h"
+#include "Libs/HID.h"
+#include "Libs/HID-Settings.h"
+#include "Libs/GamepadAPI.h"
 
 static const uint8_t _hidMultiReportDescriptorGamepad[] PROGMEM = {
   /* Gamepad with 32 buttons and 6 axis*/
@@ -67,7 +67,5 @@ class Gamepad_ : public GamepadAPI
       void Gamepad_::SendReport(void* data, int length) {
         HID().SendReport(HID_REPORTID_GAMEPAD, data, length);
       }
-  
-   //Gamepad_ Gamepad;
 };
 Gamepad_ Gamepad;

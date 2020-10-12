@@ -34,7 +34,7 @@ public:
     : pinA(pinA), pinB(pinB), id(id), callback(callback), state(state), value(value) {
   }
 
-  bool process(uint16_t gpio)
+  bool detectChanges(uint16_t gpio)
   {
     uint8_t a = bitRead(gpio, pinA);
     uint8_t b = bitRead(gpio, pinB);

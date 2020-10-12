@@ -71,5 +71,17 @@
 
             return _bytes;
         }
+
+        public long GetAsUlong()
+        {
+            var value = 0l;
+            var bytes = GetState();
+            value |= bytes[0];
+            value |= bytes[1] << 8;
+            value |= bytes[2] << 16;
+            value |= bytes[3] << 24;
+
+            return value;
+        }
     }
 }
