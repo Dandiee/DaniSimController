@@ -1,5 +1,8 @@
-﻿namespace DaniHidSimController.Services.Sim
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace DaniHidSimController.Services.Sim
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "SimConnect defined names")]
     public enum SimEvents
     {
         AP_ALT_VAR_INC,

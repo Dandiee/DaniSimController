@@ -1,7 +1,6 @@
 ﻿<UserControl x:Class="DaniHidSimController.Views.IoComponents.LedView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:viewModels="clr-namespace:DaniHidSimController.ViewModels"
              xmlns:ioComponents="clr-namespace:DaniHidSimController.ViewModels.IoComponents">
         <Grid>
 

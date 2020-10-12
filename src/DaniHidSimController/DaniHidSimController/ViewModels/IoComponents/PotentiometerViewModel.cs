@@ -11,8 +11,13 @@ namespace DaniHidSimController.ViewModels.IoComponents
         
         public PotentiometerViewModel(Expression<Func<DaniDeviceState, short>> getValueExpression)
         {
+            if (!(getValueExpression?.Body is MemberExpression memberExpression))
+            {
+                throw new ArgumentException("The argument must be a MemberExpression", nameof(getValueExpression));
+            }
+
             _getValue = getValueExpression.Compile();
-            InputName = (getValueExpression.Body as MemberExpression).Member.Name;
+            InputName = memberExpression.Member.Name;
         }
 
         public string InputName { get; }

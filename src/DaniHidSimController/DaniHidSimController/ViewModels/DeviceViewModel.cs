@@ -70,7 +70,7 @@ namespace DaniHidSimController.ViewModels
 
                 leds[Pin.Gpio0].State = state.IsParkingBrakeEnabled.ToLedState();
 
-                leds[Pin.Gpio5].State = state.IsAutothtottleEnabled.ToLedState();
+                leds[Pin.Gpio5].State = state.IsAutoThrottleEnabled.ToLedState();
                 leds[Pin.Gpio4].State = state.IsAutopilotYawDamperEnabled.ToLedState();
 
                 leds[Pin.BuiltIn8].State = state.IsLeftGearMoving ? LedState.Blink : state.IsLeftGearOut.ToLedState();

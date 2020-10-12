@@ -1,5 +1,8 @@
-﻿namespace DaniHidSimController.Services.Sim
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace DaniHidSimController.Services.Sim
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "SimConnect defined names")]
     public enum SimVars
     {
         AUTOPILOT_MASTER = 0,

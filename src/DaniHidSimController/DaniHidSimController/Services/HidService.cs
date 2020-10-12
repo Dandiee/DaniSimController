@@ -23,7 +23,7 @@ namespace DaniHidSimController.Services
         {
             if (msg == 0x00FF)
             {
-                var newState = GetDeviceState(lParam, out var bytes);
+                var newState = GetDeviceState(lParam, out _);
                 if (newState.ReportId == 6)
                 {
                     _eventAggregator.GetEvent<HidStateReceivedEvent>().Publish(newState);

@@ -19,12 +19,17 @@ namespace DaniHidSimController.ViewModels.IoComponents
             SimEvents increaseEvent,
             SimEvents decreaseEvent)
         {
+            if (!(getValueExpression?.Body is MemberExpression memberExpression))
+            {
+                throw new ArgumentException("The argument must be a MemberExpression", nameof(getValueExpression));
+            }
+
             _simConnectService = simConnectService;
             _getValue = getValueExpression.Compile();
             
             IncreaseEvent = increaseEvent;
             DecreaseEvent = decreaseEvent;
-            InputName = (getValueExpression.Body as MemberExpression).Member.Name;
+            InputName = memberExpression.Member.Name;
             ButtonIndex = buttonIndex;
             Name = name;
         }
@@ -62,15 +67,7 @@ namespace DaniHidSimController.ViewModels.IoComponents
                 {
                     if (IsInitialized)
                     {
-                        var delta = value - originalValue;
-                        if (delta > 0)
-                        {
-                            _simConnectService.TransmitEvent(IncreaseEvent, 0);
-                        }
-                        else
-                        {
-                            _simConnectService.TransmitEvent(DecreaseEvent, 0);
-                        }
+                        _simConnectService.TransmitEvent(value - originalValue > 0 ? IncreaseEvent : DecreaseEvent, 0);
                     }
                     else
                     {

@@ -28,6 +28,11 @@ namespace DaniHidSimController
             var handle = new WindowInteropHelper(this).Handle;
             var source = HwndSource.FromHwnd(handle);
 
+            if (source == null)
+            {
+                throw new Exception("Can't get handle.");
+            }
+
             source.AddHook(_hidService.WndProc);
             source.AddHook(_simConnectService.WndProc);
 
@@ -35,14 +40,14 @@ namespace DaniHidSimController
 
             WinApi.RegisterRawInputDevices(new[]
             {
-                new RAWINPUTDEVICE
+                new RawInputDevice
                 {
                     usUsagePage = 1,
                     dwFlags = (RawInputDeviceFlags) uint.Parse("00000100", System.Globalization.NumberStyles.HexNumber),
                     hwndTarget = source.Handle,
                     usUsage = 4,
                 }
-            }, 1, (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICE)));
+            }, 1, (uint)Marshal.SizeOf(typeof(RawInputDevice)));
 
             base.OnSourceInitialized(e);
         }

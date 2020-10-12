@@ -7,46 +7,44 @@ using DaniHidSimController.Services;
 using DaniHidSimController.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace DaniHidSimController
 {
     public partial class App
     {
         public static IServiceProvider ServiceProvider { get; private set; }
-        public static IConfiguration Configuration { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            var serviceCollection = new ServiceCollection();
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureAppConfiguration(configuration =>
+                {
+                    configuration
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appSettings.json")
+                        .AddUserSecrets<App>();
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    services.Configure<SimOptions>(context.Configuration.GetSection(nameof(SimOptions)));
 
-            var configurationBuilder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets<App>();
+                    services.AddTransient<MainWindow>();
+                    services.AddTransient<MainWindowViewModel>();
+                    services.AddTransient<LocationWindowViewModel>();
+                    services.AddTransient<DeviceViewModel>();
+                    services.AddTransient<DeviceViewModel>();
 
-            Configuration = configurationBuilder.Build();
+                    services.AddSingleton<IHidService, HidService>();
+                    services.AddSingleton<IUsbService, UsbService>();
+                    services.AddSingleton<IEventAggregator, EventAggregator>();
+                    services.AddSingleton<ISimConnectService, SimConnectService>();
+                })
+                .Build();
 
-            ConfigureServices(serviceCollection, Configuration);
+            ServiceProvider = host.Services;
 
-            ServiceProvider = serviceCollection.BuildServiceProvider();
-
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
-        }
-
-        private void ConfigureServices(IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddSingleton<IEventAggregator, EventAggregator>();
-            services.AddTransient<MainWindow>();
-            services.Configure<SimOptions>(configuration.GetSection(nameof(SimOptions)));
-            services.AddTransient<MainWindowViewModel>();
-            services.AddTransient<LocationWindowViewModel>();
-            services.AddTransient<DeviceViewModel>();
-
-            services.AddSingleton<IHidService, HidService>();
-            services.AddSingleton<IUsbService, UsbService>();
-            services.AddTransient<DeviceViewModel>();
-            services.AddSingleton<ISimConnectService, SimConnectService>();
+            host.Services.GetService<MainWindow>().Show();
         }
     }
 }

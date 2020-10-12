@@ -37,7 +37,7 @@ namespace DaniHidSimController.Views.IoComponents
             if (d is SliderView sliderView)
             {
                 var value = (double) e.NewValue;
-                var range = sliderView.GrfxContainer.ActualHeight - sliderView.KnobHeight;
+                var range = sliderView.Container.ActualHeight - sliderView.KnobHeight;
 
                 sliderView.VerticalOffset = range -
                     Map(value, short.MinValue, short.MaxValue, 0, range);
@@ -67,10 +67,8 @@ namespace DaniHidSimController.Views.IoComponents
             set => SetValue(KnobMarginProperty, value);
         }
 
-        private static double Map(double x, double in_min, double in_max, double out_min, double out_max)
-        {
-            return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-        }
+        private static double Map(double value, double inputMin, double inputMax, double outputMin, double outputMax)
+            => (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 
         public static readonly DependencyProperty KnobColorProperty = DependencyProperty.Register(
             nameof(KnobColor), typeof(Brush), typeof(SliderView), new PropertyMetadata(default(Brush)));

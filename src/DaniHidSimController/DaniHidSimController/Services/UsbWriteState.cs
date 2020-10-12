@@ -31,7 +31,7 @@
 
         public bool IsParkingBrakeEnabled { get; set; }
 
-        public bool IsAutothtottleEnabled { get; set; }
+        public bool IsAutoThrottleEnabled { get; set; }
 
 
         public byte[] GetState()
@@ -62,7 +62,7 @@
 
             var b4 = 0
                      | ((IsParkingBrakeEnabled ? 1 : 0))
-                     | ((IsAutothtottleEnabled ? 1 : 0) << 1);
+                     | ((IsAutoThrottleEnabled ? 1 : 0) << 1);
 
             _bytes[0] = (byte)b1;
             _bytes[1] = (byte)b2;

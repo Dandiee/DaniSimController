@@ -43,7 +43,7 @@ namespace DaniHidSimController.ViewModels
                     => state.IsParkingBrakeEnabled = (bool)request.Get(),
 
                 [SimVars.AUTOPILOT_THROTTLE_ARM] = (request, state)
-                    => state.IsAutothtottleEnabled = (bool)request.Get(),
+                    => state.IsAutoThrottleEnabled = (bool)request.Get(),
 
                 [SimVars.AUTOPILOT_YAW_DAMPER] = (request, state)
                     => state.IsAutopilotYawDamperEnabled = (bool)request.Get(),

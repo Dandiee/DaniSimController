@@ -38,7 +38,7 @@ struct State {
   uint8_t IsBrakeNonZero = 0;
 
   uint8_t IsParkingBrakeEnabled = 0;
-  uint8_t IsAutothtottleEnabled = 0;
+  uint8_t IsAutoThrottleEnabled = 0;
 };
 
 //SimController simController = SimController(onSimStateChanged);
@@ -245,7 +245,7 @@ void readFromPc()
         _state.IsBrakeNonZero = bitRead(byte3, 7);
 
         _state.IsParkingBrakeEnabled = bitRead(byte4, 0);
-        _state.IsAutothtottleEnabled = bitRead(byte4, 1);
+        _state.IsAutoThrottleEnabled = bitRead(byte4, 1);
         
       }
       
@@ -289,7 +289,7 @@ void writeLeds() {
   
     bitWrite(gpio, 0, _state.IsParkingBrakeEnabled);
   
-    bitWrite(gpio, 5, _state.IsAutothtottleEnabled);
+    bitWrite(gpio, 5, _state.IsAutoThrottleEnabled);
     bitWrite(gpio, 4, _state.IsAutopilotYawDamperEnabled);
   
     digitalWrite(8, _state.IsLeftGearMoving ? blinkState : _state.IsLeftGearOut);

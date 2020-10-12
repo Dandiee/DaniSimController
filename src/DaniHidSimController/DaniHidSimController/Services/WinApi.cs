@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace DaniHidSimController.Services
@@ -16,13 +17,13 @@ namespace DaniHidSimController.Services
 
         [DllImport("User32.dll", SetLastError = true)]
         public static extern bool RegisterRawInputDevices(
-            RAWINPUTDEVICE[] pRawInputDevice,
+            RawInputDevice[] pRawInputDevice,
             uint uiNumDevices,
             uint cbSize);
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct RAWINPUTHEADER
+    public struct RawInputHeader
     {
         [MarshalAs(UnmanagedType.U4)] public RawInputDeviceType dwType;
         [MarshalAs(UnmanagedType.U4)] public int dwSize;
@@ -31,19 +32,20 @@ namespace DaniHidSimController.Services
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    public struct RAWINPUT
+    public struct RawInput
     {
-        [FieldOffset(00)] public RAWINPUTHEADER header;
-        [FieldOffset(16)] public RAWHID hid;
+        [FieldOffset(00)] public RawInputHeader header;
+        [FieldOffset(16)] public RawHid hid;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct RAWHID
+    public struct RawHid
     {
         [MarshalAs(UnmanagedType.U4)] public uint dwSizeHid;
         [MarshalAs(UnmanagedType.U4)] public uint dwCount;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "WIN API defined names")]
     public enum RawInputDeviceType : uint
     {
         RIM_TYPEMOUSE,
@@ -52,7 +54,7 @@ namespace DaniHidSimController.Services
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct RAWINPUTDEVICE
+    public struct RawInputDevice
     {
         [MarshalAs(UnmanagedType.U2)]
         public ushort usUsagePage;
@@ -65,6 +67,7 @@ namespace DaniHidSimController.Services
 
 
     [Flags]
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "WIN API defined names")]
     public enum RawInputDeviceFlags : uint
     {
         RIDEV_APPKEYS = 1024, // 0x00000400
@@ -84,19 +87,19 @@ namespace DaniHidSimController.Services
     {
         [FieldOffset(00)] public byte ReportId;
         
-        [FieldOffset(01)] public int ButtonStates;     // 4 byte
+        [FieldOffset(01)] public int ButtonStates;
 
-        [FieldOffset(05)] public short Analog1; // 2 byte
-        [FieldOffset(07)] public short Analog2; // 2 byte
-        [FieldOffset(09)] public short Analog3; // 2 byte
-        [FieldOffset(11)] public short Analog4; // 2 byte
-        [FieldOffset(13)] public short Analog5; // 2 byte
-        [FieldOffset(15)] public short Analog6; // 2 byte
-        [FieldOffset(17)] public short Analog7; // 2 byte
-        [FieldOffset(19)] public short Analog8; // 2 byte
-        [FieldOffset(21)] public short Analog9; // 2 byte => 9*2 = 18 bytes
-        [FieldOffset(23)] public short Analog10; // 2 byte => 9*2 = 18 bytes
+        [FieldOffset(05)] public short Analog1;
+        [FieldOffset(07)] public short Analog2;
+        [FieldOffset(09)] public short Analog3;
+        [FieldOffset(11)] public short Analog4;
+        [FieldOffset(13)] public short Analog5;
+        [FieldOffset(15)] public short Analog6;
+        [FieldOffset(17)] public short Analog7;
+        [FieldOffset(19)] public short Analog8;
+        [FieldOffset(21)] public short Analog9;
+        [FieldOffset(23)] public short Analog10;
 
-        [FieldOffset(25)] public byte Dpads;          // 1 byte
+        [FieldOffset(25)] public byte DPads;
     }
 }
